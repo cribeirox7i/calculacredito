@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
+import { obterLogosPorSlug } from "@/lib/logos";
 import { SimuladorInterativo } from "@/components/SimuladorInterativo";
 
-export function SimuladorModalidade({
+export async function SimuladorModalidade({
   titulo,
   resumo,
   periodoLabel,
@@ -25,6 +26,8 @@ export function SimuladorModalidade({
   disclaimerExtra?: string;
   children: ReactNode;
 }) {
+  const logosPorSlug = await obterLogosPorSlug();
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -41,6 +44,7 @@ export function SimuladorModalidade({
           mediaAoAno={mediaAoAno}
           valorInicial={valorInicial}
           mesesInicial={mesesInicial}
+          logosPorSlug={logosPorSlug}
         />
       </div>
 

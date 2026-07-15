@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
 import { simularPrice } from "@/lib/amortizacao";
+import { corAvatar, iniciaisInstituicao, slugify } from "@/lib/logos";
 
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -16,12 +17,14 @@ export function SimuladorInterativo({
   mediaAoAno,
   valorInicial = 5000,
   mesesInicial = 24,
+  logosPorSlug = {},
 }: {
   taxas: TaxaInstituicao[];
   taxaMediaAoMes: number;
   mediaAoAno: number;
   valorInicial?: number;
   mesesInicial?: number;
+  logosPorSlug?: Record<string, string>;
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
@@ -134,7 +137,12 @@ export function SimuladorInterativo({
                 return (
                   <tr key={t.instituicao} className="border-t border-zinc-100 dark:border-zinc-800">
                     <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{t.posicao}</td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.instituicao}</td>
+                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
+                      <div className="flex items-center gap-2">
+                        <LogoInstituicao nome={t.instituicao} url={logosPorSlug[slugify(t.instituicao)]} />
+                        {t.instituicao}
+                      </div>
+                    </td>
                     <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.taxaAoMes.toFixed(2)}%</td>
                     <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.taxaAoAno.toFixed(2)}%</td>
                     <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
@@ -176,5 +184,22 @@ export function SimuladorInterativo({
         </p>
       </section>
     </div>
+  );
+}
+
+function LogoInstituicao({ nome, url }: { nome: string; url?: string }) {
+  if (url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={url} alt="" className="h-6 w-6 shrink-0 object-contain" />;
+  }
+
+  return (
+    <span
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+      style={{ backgroundColor: corAvatar(nome) }}
+      aria-hidden
+    >
+      {iniciaisInstituicao(nome)}
+    </span>
   );
 }

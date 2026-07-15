@@ -75,7 +75,7 @@ export default async function ConsignadoPage({ params }: Params) {
 
   return (
     <>
-      <div className="mx-auto max-w-3xl px-4 pt-12 sm:px-6">
+      <div className="mx-auto w-full px-4 pt-12 sm:px-6 lg:w-[70%]">
         <div className="flex flex-wrap gap-2">
           {(Object.keys(TIPOS) as TipoConsignado[]).map((chave) => (
             <Link

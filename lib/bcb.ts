@@ -3,6 +3,7 @@ const BCB_BASE_URL =
 
 export type TaxaInstituicao = {
   instituicao: string;
+  cnpj8: string;
   taxaAoMes: number;
   taxaAoAno: number;
   posicao: number;
@@ -33,6 +34,7 @@ type LinhaDiaria = {
   InstituicaoFinanceira: string;
   TaxaJurosAoMes: number;
   TaxaJurosAoAno: number;
+  cnpj8: string;
 };
 
 type LinhaMensal = {
@@ -43,6 +45,7 @@ type LinhaMensal = {
   TaxaJurosAoMes: number;
   TaxaJurosAoAno: number;
   anoMes: string;
+  cnpj8: string;
 };
 
 // codigoModalidade vem nulo nas linhas de dado da API (só existe populado no
@@ -81,6 +84,7 @@ export async function fetchTaxasDiaria(modalidade: string): Promise<TaxasModalid
   const taxas = linhasDoPeriodo
     .map((l) => ({
       instituicao: l.InstituicaoFinanceira,
+      cnpj8: l.cnpj8,
       taxaAoMes: l.TaxaJurosAoMes,
       taxaAoAno: l.TaxaJurosAoAno,
       posicao: l.Posicao,
@@ -134,6 +138,7 @@ export async function fetchTaxasMensal(modalidade: string): Promise<TaxasModalid
   const taxas = linhasDoMes
     .map((l) => ({
       instituicao: l.InstituicaoFinanceira,
+      cnpj8: l.cnpj8,
       taxaAoMes: l.TaxaJurosAoMes,
       taxaAoAno: l.TaxaJurosAoAno,
       posicao: l.Posicao,

@@ -31,7 +31,7 @@ const operacoes: Operacao[] = [
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <main className="mx-auto w-full px-4 py-16 sm:px-6 lg:w-[70%]">
       <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
         Simulador de crédito
       </h1>

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Simulador de Crédito — simule com taxas reais do Banco Central",
-    template: "%s | Simulador de Crédito",
+    default: "CalculaCredito — simule com taxas reais do Banco Central",
+    template: "%s | CalculaCredito",
   },
   description:
     "Simule crédito pessoal, consignado, financiamento de veículo e imobiliário com taxas médias reportadas ao Banco Central do Brasil.",

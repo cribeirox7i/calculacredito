@@ -2,14 +2,54 @@
 
 import { useMemo, useState } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
-import { simularPrice } from "@/lib/amortizacao";
-import { corAvatar, iniciaisInstituicao, slugify } from "@/lib/logos";
+import { simularPrice, type SimulacaoPrice } from "@/lib/amortizacao";
+import { corAvatar, iniciaisInstituicao, removerAcentos } from "@/lib/logos";
 
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function formatarNumero(valor: number): string {
+  return valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const LIMITE_PADRAO = 20;
+
+type Coluna =
+  | "posicao"
+  | "instituicao"
+  | "taxaAoMes"
+  | "taxaAoAno"
+  | "parcela"
+  | "totalPago"
+  | "totalJuros";
+
+type LinhaTabela = TaxaInstituicao & { simulacao: SimulacaoPrice | null };
+
+const COLUNAS: { chave: Coluna; label: string; alinhamento: "left" | "right" }[] = [
+  { chave: "posicao", label: "#", alinhamento: "right" },
+  { chave: "instituicao", label: "Instituição", alinhamento: "left" },
+  { chave: "taxaAoMes", label: "% ao mês", alinhamento: "right" },
+  { chave: "taxaAoAno", label: "% ao ano", alinhamento: "right" },
+  { chave: "parcela", label: "Parcela (R$)", alinhamento: "right" },
+  { chave: "totalPago", label: "Total pago (R$)", alinhamento: "right" },
+  { chave: "totalJuros", label: "Total juros (R$)", alinhamento: "right" },
+];
+
+function valorOrdenavel(linha: LinhaTabela, coluna: Coluna): string | number {
+  switch (coluna) {
+    case "instituicao":
+      return linha.instituicao;
+    case "parcela":
+      return linha.simulacao?.parcela ?? -1;
+    case "totalPago":
+      return linha.simulacao?.totalPago ?? -1;
+    case "totalJuros":
+      return linha.simulacao?.totalJuros ?? -1;
+    default:
+      return linha[coluna];
+  }
+}
 
 export function SimuladorInterativo({
   taxas,
@@ -17,27 +57,63 @@ export function SimuladorInterativo({
   mediaAoAno,
   valorInicial = 5000,
   mesesInicial = 24,
-  logosPorSlug = {},
+  logosPorCnpj8 = {},
 }: {
   taxas: TaxaInstituicao[];
   taxaMediaAoMes: number;
   mediaAoAno: number;
   valorInicial?: number;
   mesesInicial?: number;
-  logosPorSlug?: Record<string, string>;
+  logosPorCnpj8?: Record<string, string>;
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
   const [taxa, setTaxa] = useState(Number(taxaMediaAoMes.toFixed(2)));
   const [mostrarTodos, setMostrarTodos] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [ordenarPor, setOrdenarPor] = useState<Coluna>("posicao");
+  const [direcao, setDirecao] = useState<"asc" | "desc">("asc");
 
   const resultado = useMemo(() => {
     if (valor <= 0 || meses <= 0 || taxa <= 0) return null;
     return simularPrice(valor, taxa, meses);
   }, [valor, meses, taxa]);
 
-  const taxasExibidas = mostrarTodos ? taxas : taxas.slice(0, LIMITE_PADRAO);
-  const restantes = taxas.length - LIMITE_PADRAO;
+  const buscaNormalizada = removerAcentos(busca.trim().toLowerCase());
+
+  const linhas = useMemo<LinhaTabela[]>(() => {
+    const comSimulacao: LinhaTabela[] = taxas.map((t) => ({
+      ...t,
+      simulacao: valor > 0 && meses > 0 ? simularPrice(valor, t.taxaAoMes, meses) : null,
+    }));
+
+    const filtradas = buscaNormalizada
+      ? comSimulacao.filter((l) => removerAcentos(l.instituicao.toLowerCase()).includes(buscaNormalizada))
+      : comSimulacao;
+
+    const sinal = direcao === "asc" ? 1 : -1;
+    return [...filtradas].sort((a, b) => {
+      const va = valorOrdenavel(a, ordenarPor);
+      const vb = valorOrdenavel(b, ordenarPor);
+      if (typeof va === "string" || typeof vb === "string") {
+        return sinal * String(va).localeCompare(String(vb), "pt-BR");
+      }
+      return sinal * (va - vb);
+    });
+  }, [taxas, valor, meses, buscaNormalizada, ordenarPor, direcao]);
+
+  const buscando = buscaNormalizada.length > 0;
+  const linhasExibidas = buscando || mostrarTodos ? linhas : linhas.slice(0, LIMITE_PADRAO);
+  const restantes = linhas.length - LIMITE_PADRAO;
+
+  function alternarOrdenacao(coluna: Coluna) {
+    if (coluna === ordenarPor) {
+      setDirecao((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setOrdenarPor(coluna);
+      setDirecao("asc");
+    }
+  }
 
   return (
     <div>
@@ -117,51 +193,78 @@ export function SimuladorInterativo({
           {mediaAoAno.toFixed(2)}% ao ano). Valores de parcela e total abaixo
           usam o valor e o prazo preenchidos acima.
         </p>
+
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar instituição..."
+          className="mt-4 w-full max-w-sm rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+        />
+
+        {buscando && (
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            {linhas.length} {linhas.length === 1 ? "instituição encontrada" : "instituições encontradas"}
+          </p>
+        )}
+
         <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-2 font-medium">#</th>
-                <th className="px-4 py-2 font-medium">Instituição</th>
-                <th className="px-4 py-2 font-medium">% ao mês</th>
-                <th className="px-4 py-2 font-medium">% ao ano</th>
-                <th className="px-4 py-2 font-medium">Parcela</th>
-                <th className="px-4 py-2 font-medium">Total pago</th>
-                <th className="px-4 py-2 font-medium">Total juros</th>
+                {COLUNAS.map((coluna) => (
+                  <th key={coluna.chave} className="px-4 py-2 font-medium">
+                    <button
+                      type="button"
+                      onClick={() => alternarOrdenacao(coluna.chave)}
+                      className={`flex items-center gap-1 whitespace-nowrap hover:text-zinc-900 dark:hover:text-zinc-100 ${
+                        coluna.alinhamento === "right" ? "ml-auto flex-row-reverse" : ""
+                      }`}
+                    >
+                      {coluna.label}
+                      {ordenarPor === coluna.chave && <span>{direcao === "asc" ? "▲" : "▼"}</span>}
+                    </button>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {taxasExibidas.map((t) => {
-                const simulacao =
-                  valor > 0 && meses > 0 ? simularPrice(valor, t.taxaAoMes, meses) : null;
-                return (
-                  <tr key={t.instituicao} className="border-t border-zinc-100 dark:border-zinc-800">
-                    <td className="px-4 py-2 text-zinc-500 dark:text-zinc-400">{t.posicao}</td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                      <div className="flex items-center gap-2">
-                        <LogoInstituicao nome={t.instituicao} url={logosPorSlug[slugify(t.instituicao)]} />
-                        {t.instituicao}
+              {linhasExibidas.map((l) => (
+                <tr key={l.cnpj8} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-500 dark:text-zinc-400">
+                    {l.posicao}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-zinc-900 dark:text-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <LogoInstituicao nome={l.instituicao} url={logosPorCnpj8[l.cnpj8]} />
+                      <div>
+                        <div>{l.instituicao}</div>
+                        <div className="text-[10px] text-zinc-400 dark:text-zinc-500">{l.cnpj8}</div>
                       </div>
-                    </td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.taxaAoMes.toFixed(2)}%</td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.taxaAoAno.toFixed(2)}%</td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                      {simulacao ? formatarMoeda(simulacao.parcela) : "—"}
-                    </td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                      {simulacao ? formatarMoeda(simulacao.totalPago) : "—"}
-                    </td>
-                    <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                      {simulacao ? formatarMoeda(simulacao.totalJuros) : "—"}
-                    </td>
-                  </tr>
-                );
-              })}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
+                    {l.taxaAoMes.toFixed(2)}%
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
+                    {l.taxaAoAno.toFixed(2)}%
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
+                    {l.simulacao ? formatarNumero(l.simulacao.parcela) : "—"}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
+                    {l.simulacao ? formatarNumero(l.simulacao.totalPago) : "—"}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
+                    {l.simulacao ? formatarNumero(l.simulacao.totalJuros) : "—"}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
 
-        {restantes > 0 && (
+        {!buscando && restantes > 0 && (
           <button
             type="button"
             onClick={() => setMostrarTodos((v) => !v)}

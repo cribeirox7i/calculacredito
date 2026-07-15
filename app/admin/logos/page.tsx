@@ -1,11 +1,11 @@
 import { list } from "@vercel/blob";
-import { blobConfigurado, slugDoCaminho } from "@/lib/logos";
+import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
 import { enviarLogo, excluirLogo } from "./actions";
 
 export default async function AdminLogosPage() {
   if (!blobConfigurado()) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full px-4 py-12 sm:px-6 lg:w-[70%]">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
           Logos das instituições
         </h1>
@@ -21,15 +21,15 @@ export default async function AdminLogosPage() {
   const { blobs } = await list({ prefix: "logos/" });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <main className="mx-auto w-full px-4 py-12 sm:px-6 lg:w-[70%]">
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
         Logos das instituições
       </h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        O nome digitado deve corresponder ao nome da instituição como aparece
-        nas tabelas do site (ex.: &quot;CAIXA ECONOMICA FEDERAL&quot;, &quot;BCO
-        SAFRA S.A.&quot;) — o sistema normaliza automaticamente para
-        comparar.
+        Informe o código CNPJ8 (Banco Central) da instituição — ele aparece
+        em texto pequeno abaixo do nome de cada instituição nas tabelas do
+        site. É a chave usada para casar o logo com a instituição certa, já
+        que nomes têm variações entre modalidades.
       </p>
 
       <form
@@ -37,10 +37,12 @@ export default async function AdminLogosPage() {
         className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
       >
         <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Nome da instituição
+          Código CNPJ8 (Banco Central)
           <input
             type="text"
-            name="nome"
+            name="cnpj8"
+            pattern="\d{8}"
+            title="8 dígitos numéricos"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
           />
@@ -64,9 +66,9 @@ export default async function AdminLogosPage() {
             className="flex flex-col items-center gap-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={blob.url} alt={slugDoCaminho(blob.pathname)} className="h-12 w-12 object-contain" />
+            <img src={blob.url} alt={codigoDoCaminho(blob.pathname)} className="h-12 w-12 object-contain" />
             <p className="text-center text-xs text-zinc-500 dark:text-zinc-400">
-              {slugDoCaminho(blob.pathname)}
+              {codigoDoCaminho(blob.pathname)}
             </p>
             <form action={excluirLogo.bind(null, blob.url)}>
               <button

@@ -29,7 +29,7 @@ const MAPA_ACENTOS: Record<string, string> = {
   ñ: "n",
 };
 
-function removerAcentos(texto: string): string {
+export function removerAcentos(texto: string): string {
   return texto
     .split("")
     .map((c) => MAPA_ACENTOS[c] ?? c)
@@ -42,11 +42,11 @@ export function slugify(nome: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function caminhoBlob(nomeInstituicao: string): string {
-  return `${PREFIXO_BLOB}${slugify(nomeInstituicao)}.png`;
+export function caminhoBlob(cnpj8: string): string {
+  return `${PREFIXO_BLOB}${cnpj8}.png`;
 }
 
-export function slugDoCaminho(pathname: string): string {
+export function codigoDoCaminho(pathname: string): string {
   return pathname.replace(PREFIXO_BLOB, "").replace(/\.[^.]+$/, "");
 }
 
@@ -58,14 +58,14 @@ export function blobConfigurado(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
-export async function obterLogosPorSlug(): Promise<Record<string, string>> {
+export async function obterLogosPorCnpj8(): Promise<Record<string, string>> {
   if (!blobConfigurado()) return {};
 
   try {
     const { blobs } = await list({ prefix: PREFIXO_BLOB });
     const mapa: Record<string, string> = {};
     for (const blob of blobs) {
-      mapa[slugDoCaminho(blob.pathname)] = blob.url;
+      mapa[codigoDoCaminho(blob.pathname)] = blob.url;
     }
     return mapa;
   } catch {

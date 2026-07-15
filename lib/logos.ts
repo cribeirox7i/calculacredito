@@ -50,11 +50,16 @@ export function slugDoCaminho(pathname: string): string {
   return pathname.replace(PREFIXO_BLOB, "").replace(/\.[^.]+$/, "");
 }
 
-// BLOB_READ_WRITE_TOKEN só existe depois que o Blob Store é ativado no
-// projeto da Vercel — sem ele, o site continua funcionando normalmente,
-// só que sem logos (cai no fallback de avatar com iniciais).
+// A Vercel autentica o Blob por BLOB_READ_WRITE_TOKEN (token clássico) ou,
+// mais recentemente, por OIDC usando BLOB_STORE_ID — só existem depois que
+// o Blob Store é ativado no projeto. Sem eles, o site continua funcionando
+// normalmente, só que sem logos (cai no fallback de avatar com iniciais).
+export function blobConfigurado(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+}
+
 export async function obterLogosPorSlug(): Promise<Record<string, string>> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return {};
+  if (!blobConfigurado()) return {};
 
   try {
     const { blobs } = await list({ prefix: PREFIXO_BLOB });

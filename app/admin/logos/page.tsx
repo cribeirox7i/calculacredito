@@ -1,9 +1,9 @@
 import { list } from "@vercel/blob";
-import { slugDoCaminho } from "@/lib/logos";
+import { blobConfigurado, slugDoCaminho } from "@/lib/logos";
 import { enviarLogo, excluirLogo } from "./actions";
 
 export default async function AdminLogosPage() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!blobConfigurado()) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">

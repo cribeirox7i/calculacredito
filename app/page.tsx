@@ -15,7 +15,7 @@ const operacoes: Operacao[] = [
   {
     titulo: "Crédito consignado",
     descricao: "Parcelas descontadas direto da folha de pagamento, benefício ou aposentadoria.",
-    href: "/consignado",
+    href: "/consignado/inss",
   },
   {
     titulo: "Financiamento de veículo",
@@ -25,7 +25,7 @@ const operacoes: Operacao[] = [
   {
     titulo: "Financiamento imobiliário",
     descricao: "Compra de imóvel com taxas de mercado ou reguladas (SFH/SFI).",
-    href: "/financiamento-imobiliario",
+    href: "/financiamento-imobiliario/regulada/tr",
   },
 ];
 

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
 import { simularPrice, type SimulacaoPrice } from "@/lib/amortizacao";
 import { corAvatar, iniciaisInstituicao, removerAcentos } from "@/lib/logos";
+import { gerarPdfSimulacao } from "@/lib/pdf";
 
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -58,6 +59,8 @@ type GrupoTaxas = {
 };
 
 export function SimuladorInterativo({
+  titulo,
+  periodoLabel,
   taxas,
   taxaMediaAoMes,
   mediaAoAno,
@@ -67,6 +70,8 @@ export function SimuladorInterativo({
   sitesPorCnpj8 = {},
   gruposPorPrazo,
 }: {
+  titulo: string;
+  periodoLabel: string;
   taxas: TaxaInstituicao[];
   taxaMediaAoMes: number;
   mediaAoAno: number;
@@ -86,6 +91,8 @@ export function SimuladorInterativo({
   const [busca, setBusca] = useState("");
   const [ordenarPor, setOrdenarPor] = useState<Coluna>("posicao");
   const [direcao, setDirecao] = useState<"asc" | "desc">("asc");
+  const [gerandoPdf, setGerandoPdf] = useState<"exportar" | "compartilhar" | null>(null);
+  const [erroCompartilhar, setErroCompartilhar] = useState<string | null>(null);
 
   const grupoAtivo: GrupoTaxas = gruposPorPrazo
     ? meses <= gruposPorPrazo.limiteMeses
@@ -131,6 +138,69 @@ export function SimuladorInterativo({
     } else {
       setOrdenarPor(coluna);
       setDirecao("asc");
+    }
+  }
+
+  async function montarPdf(): Promise<Blob | null> {
+    if (!resultado) return null;
+    return gerarPdfSimulacao({
+      titulo,
+      periodoLabel,
+      valor,
+      meses,
+      taxa,
+      parcela: resultado.parcela,
+      totalPago: resultado.totalPago,
+      totalJuros: resultado.totalJuros,
+      linhas: linhasExibidas.map((l) => ({
+        posicao: l.posicao,
+        instituicao: l.instituicao,
+        taxaAoMes: l.taxaAoMes,
+        taxaAoAno: l.taxaAoAno,
+        parcela: l.simulacao?.parcela ?? null,
+        totalPago: l.simulacao?.totalPago ?? null,
+        totalJuros: l.simulacao?.totalJuros ?? null,
+      })),
+    });
+  }
+
+  async function exportarPdf() {
+    setGerandoPdf("exportar");
+    try {
+      const blob = await montarPdf();
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "simulacao-credito.pdf";
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGerandoPdf(null);
+    }
+  }
+
+  async function compartilharPdf() {
+    setGerandoPdf("compartilhar");
+    setErroCompartilhar(null);
+    try {
+      const blob = await montarPdf();
+      if (!blob) return;
+      const arquivo = new File([blob], "simulacao-credito.pdf", { type: "application/pdf" });
+
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [arquivo] })) {
+        await navigator.share({ files: [arquivo], title: titulo, text: "Minha simulação no CalculaCredito" });
+      } else if (navigator.share) {
+        await navigator.share({ title: titulo, text: "Minha simulação no CalculaCredito", url: location.href });
+      } else {
+        setErroCompartilhar("Compartilhamento não é suportado neste navegador - use o botão de exportar PDF.");
+      }
+    } catch (erro) {
+      if (erro instanceof Error && erro.name !== "AbortError") {
+        setErroCompartilhar("Não foi possível compartilhar. Tente exportar o PDF.");
+      }
+    } finally {
+      setGerandoPdf(null);
     }
   }
 
@@ -199,6 +269,30 @@ export function SimuladorInterativo({
                 {formatarMoeda(resultado.totalJuros)}
               </p>
             </div>
+          </div>
+        )}
+
+        {resultado && (
+          <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+            <button
+              type="button"
+              onClick={exportarPdf}
+              disabled={gerandoPdf !== null}
+              className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              {gerandoPdf === "exportar" ? "Gerando PDF..." : "Exportar PDF"}
+            </button>
+            <button
+              type="button"
+              onClick={compartilharPdf}
+              disabled={gerandoPdf !== null}
+              className="rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            >
+              {gerandoPdf === "compartilhar" ? "Preparando..." : "Compartilhar"}
+            </button>
+            {erroCompartilhar && (
+              <p className="w-full text-xs text-red-600 dark:text-red-400">{erroCompartilhar}</p>
+            )}
           </div>
         )}
       </div>
@@ -326,7 +420,7 @@ export function SimuladorInterativo({
             Portal de Dados Abertos do Banco Central do Brasil
           </a>
           . As taxas já incluem os encargos médios da operação, ponderados
-          pelo valor contratado em cada instituição.
+          pelo valor contratado em cada instituição. {periodoLabel}
         </p>
       </section>
     </div>

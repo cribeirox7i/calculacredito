@@ -47,6 +47,8 @@ export async function SimuladorModalidade({
 
       <div className="mt-8">
         <SimuladorInterativo
+          titulo={titulo}
+          periodoLabel={periodoLabel}
           taxas={taxas}
           taxaMediaAoMes={mediaAoMes}
           mediaAoAno={mediaAoAno}

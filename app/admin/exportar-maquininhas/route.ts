@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { gerarCsvModelo } from "@/lib/csv-maquininhas";
+import { gerarCsvModelo } from "@/lib/planilha-maquininhas";
 import { obterTaxasMaquininha } from "@/lib/taxas-maquininha";
 
 export const dynamic = "force-dynamic";

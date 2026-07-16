@@ -2,9 +2,11 @@
 
 import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
-import { parseCsvSites } from "@/lib/csv-sites";
 import { caminhoBlob } from "@/lib/logos";
+import { lerLinhasPlanilha } from "@/lib/planilha";
+import { validarLinhasSites } from "@/lib/planilha-sites";
 import { removerSite, salvarSite } from "@/lib/sites";
+import type { ResultadoImportacaoUI } from "./tipos-importacao";
 
 function normalizarUrl(url: string): string {
   const limpa = url.trim();
@@ -54,28 +56,43 @@ export async function excluirSite(cnpj8: string) {
   revalidatePath("/", "layout");
 }
 
-// Faz upsert linha a linha (não apaga cnpj8 ausentes do CSV) - uma
+// Faz upsert linha a linha (não apaga cnpj8 ausentes da planilha) - uma
 // reimportação parcial não derruba instituições já cadastradas por fora.
-export async function importarSitesCsv(formData: FormData) {
+// Assinatura (prevState, formData) compatível com useActionState.
+export async function importarArquivoSites(
+  _estadoAnterior: ResultadoImportacaoUI,
+  formData: FormData
+): Promise<ResultadoImportacaoUI> {
   const arquivo = formData.get("arquivo");
   if (!(arquivo instanceof File) || arquivo.size === 0) {
-    throw new Error("Selecione um arquivo CSV.");
+    return { ok: false, mensagem: "Selecione um arquivo CSV ou Excel." };
   }
 
-  const texto = await arquivo.text();
-  const { validas, erros } = parseCsvSites(texto);
+  try {
+    const linhas = await lerLinhasPlanilha(arquivo);
+    const { validas, erros } = validarLinhasSites(linhas);
 
-  for (const { cnpj8, site } of validas) {
-    await salvarSite(cnpj8, site);
-  }
+    for (const { cnpj8, site } of validas) {
+      await salvarSite(cnpj8, site);
+    }
 
-  revalidatePath("/admin");
-  revalidatePath("/", "layout");
+    revalidatePath("/admin");
+    revalidatePath("/", "layout");
 
-  if (erros.length > 0) {
-    throw new Error(
-      `Importados ${validas.length} site(s) com sucesso. ${erros.length} linha(s) com erro, não importadas:\n` +
-        erros.map((e) => `Linha ${e.linha}: ${e.motivo}`).join("\n")
-    );
+    if (erros.length > 0) {
+      return {
+        ok: validas.length > 0,
+        mensagem:
+          `Importados ${validas.length} site(s) com sucesso. ${erros.length} linha(s) com erro, não importadas:\n` +
+          erros.map((e) => `Linha ${e.linha}: ${e.motivo}`).join("\n"),
+      };
+    }
+
+    return { ok: true, mensagem: `Importados ${validas.length} site(s) com sucesso.` };
+  } catch (erro) {
+    return {
+      ok: false,
+      mensagem: erro instanceof Error ? `Falha ao ler o arquivo: ${erro.message}` : "Falha ao ler o arquivo.",
+    };
   }
 }

@@ -1,13 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { parseCsvTaxas } from "@/lib/csv-maquininhas";
+import { lerLinhasPlanilha } from "@/lib/planilha";
+import { validarLinhasTaxas } from "@/lib/planilha-maquininhas";
 import {
   adicionarTaxaMaquininha,
   removerTaxaMaquininha,
   substituirTaxasDoAdquirente,
   type ModalidadeTaxa,
 } from "@/lib/taxas-maquininha";
+import type { ResultadoImportacaoUI } from "./tipos-importacao";
 
 const MODALIDADES_VALIDAS: ModalidadeTaxa[] = ["pix", "debito", "credito_vista", "credito_parcelado"];
 
@@ -58,34 +60,54 @@ export async function removerTaxa(id: string) {
   revalidatePath("/", "layout");
 }
 
-export async function importarCsv(formData: FormData) {
+// Assinatura (prevState, formData) compatível com useActionState - retorna
+// o resultado em vez de lançar, pra UI mostrar progresso/erro inline sem
+// cair na tela de erro genérica do Next em caso de linha inválida.
+export async function importarArquivo(
+  _estadoAnterior: ResultadoImportacaoUI,
+  formData: FormData
+): Promise<ResultadoImportacaoUI> {
   const arquivo = formData.get("arquivo");
   if (!(arquivo instanceof File) || arquivo.size === 0) {
-    throw new Error("Selecione um arquivo CSV.");
+    return { ok: false, mensagem: "Selecione um arquivo CSV ou Excel." };
   }
 
-  const texto = await arquivo.text();
-  const { validas, erros } = parseCsvTaxas(texto);
+  try {
+    const linhas = await lerLinhasPlanilha(arquivo);
+    const { validas, erros } = validarLinhasTaxas(linhas);
 
-  const porAdquirente = new Map<string, typeof validas>();
-  for (const linha of validas) {
-    const grupo = porAdquirente.get(linha.adquirente) ?? [];
-    grupo.push(linha);
-    porAdquirente.set(linha.adquirente, grupo);
-  }
+    const porAdquirente = new Map<string, typeof validas>();
+    for (const linha of validas) {
+      const grupo = porAdquirente.get(linha.adquirente) ?? [];
+      grupo.push(linha);
+      porAdquirente.set(linha.adquirente, grupo);
+    }
 
-  for (const [adquirente, linhas] of porAdquirente) {
-    await substituirTaxasDoAdquirente(adquirente, linhas);
-  }
+    for (const [adquirente, linhasDoAdquirente] of porAdquirente) {
+      await substituirTaxasDoAdquirente(adquirente, linhasDoAdquirente);
+    }
 
-  revalidatePath("/admin");
-  revalidatePath("/", "layout");
+    revalidatePath("/admin");
+    revalidatePath("/", "layout");
 
-  if (erros.length > 0) {
-    throw new Error(
-      `Importadas ${validas.length} linha(s) com sucesso (${porAdquirente.size} adquirente(s)). ` +
-        `${erros.length} linha(s) com erro, não importadas:\n` +
-        erros.map((e) => `Linha ${e.linha}: ${e.motivo}`).join("\n")
-    );
+    if (erros.length > 0) {
+      return {
+        ok: validas.length > 0,
+        mensagem:
+          `Importadas ${validas.length} linha(s) com sucesso (${porAdquirente.size} adquirente(s)). ` +
+          `${erros.length} linha(s) com erro, não importadas:\n` +
+          erros.map((e) => `Linha ${e.linha}: ${e.motivo}`).join("\n"),
+      };
+    }
+
+    return {
+      ok: true,
+      mensagem: `Importadas ${validas.length} linha(s) com sucesso (${porAdquirente.size} adquirente(s)).`,
+    };
+  } catch (erro) {
+    return {
+      ok: false,
+      mensagem: erro instanceof Error ? `Falha ao ler o arquivo: ${erro.message}` : "Falha ao ler o arquivo.",
+    };
   }
 }

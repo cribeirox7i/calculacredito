@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import type { ModalidadeTaxa, TaxaMaquininha } from "@/lib/taxas-maquininha";
 
 const CABECALHO = ["adquirente", "plano", "modalidade", "parcelas", "taxa", "fonte_url", "atualizado_em"] as const;
@@ -25,7 +26,7 @@ const LINHAS_EXEMPLO = [
 ];
 
 // Modalidades aceitas na importação: tanto o valor bruto quanto rótulos
-// amigáveis (o admin pode editar o CSV no Excel e digitar "Débito" em vez de
+// amigáveis (o admin pode editar a planilha e digitar "Débito" em vez de
 // "debito") - normalizado sem acento/maiúsculas antes de casar.
 const ALIAS_MODALIDADE: Record<string, ModalidadeTaxa> = {
   pix: "pix",
@@ -60,21 +61,35 @@ function parseTaxa(valor: string): number | null {
   return Number.isFinite(numero) ? numero : null;
 }
 
-export function gerarCsvModelo(taxasAtuais: TaxaMaquininha[]): string {
-  const linhas =
-    taxasAtuais.length > 0
-      ? taxasAtuais.map((t) => ({
-          adquirente: t.adquirente,
-          plano: t.plano,
-          modalidade: t.modalidade,
-          parcelas: t.parcelas != null ? String(t.parcelas) : "",
-          taxa: String(t.taxa).replace(".", ","),
-          fonte_url: t.fonteUrl ?? "",
-          atualizado_em: t.atualizadoEm,
-        }))
-      : LINHAS_EXEMPLO;
+function linhasParaModelo(taxasAtuais: TaxaMaquininha[]) {
+  return taxasAtuais.length > 0
+    ? taxasAtuais.map((t) => ({
+        adquirente: t.adquirente,
+        plano: t.plano,
+        modalidade: t.modalidade,
+        parcelas: t.parcelas != null ? String(t.parcelas) : "",
+        taxa: String(t.taxa).replace(".", ","),
+        fonte_url: t.fonteUrl ?? "",
+        atualizado_em: t.atualizadoEm,
+      }))
+    : LINHAS_EXEMPLO;
+}
 
-  return Papa.unparse({ fields: [...CABECALHO], data: linhas });
+// ";" como delimitador (não ","): a coluna "taxa" usa vírgula decimal
+// (padrão brasileiro/Excel), e vírgula como separador de coluna ao mesmo
+// tempo quebra a estrutura do arquivo se o admin editar e resalvar no Excel
+// sem escapar o campo manualmente. BOM (﻿) no início garante que o
+// Excel abra o arquivo como UTF-8 em vez de ANSI ao dar duplo-clique nele
+// (sem isso, acentos viram caracteres corrompidos).
+export function gerarCsvModelo(taxasAtuais: TaxaMaquininha[]): string {
+  return "﻿" + Papa.unparse({ fields: [...CABECALHO], data: linhasParaModelo(taxasAtuais) }, { delimiter: ";" });
+}
+
+export function gerarXlsxModelo(taxasAtuais: TaxaMaquininha[]): Buffer {
+  const planilha = XLSX.utils.json_to_sheet(linhasParaModelo(taxasAtuais), { header: [...CABECALHO] });
+  const pasta = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(pasta, planilha, "Taxas");
+  return XLSX.write(pasta, { type: "buffer", bookType: "xlsx" }) as Buffer;
 }
 
 export type ErroLinhaCsv = { linha: number; motivo: string };
@@ -84,21 +99,30 @@ export type ResultadoImportacaoCsv = {
   erros: ErroLinhaCsv[];
 };
 
-export function parseCsvTaxas(conteudoCsv: string): ResultadoImportacaoCsv {
-  const { data } = Papa.parse<Record<string, string>>(conteudoCsv, {
-    header: true,
-    skipEmptyLines: true,
-  });
-
+export function validarLinhasTaxas(linhas: Record<string, string>[]): ResultadoImportacaoCsv {
   const validas: Omit<TaxaMaquininha, "id" | "atualizadoEm">[] = [];
   const erros: ErroLinhaCsv[] = [];
 
-  data.forEach((linha, indice) => {
+  linhas.forEach((linha, indice) => {
     const numeroLinha = indice + 2; // +1 pelo cabeçalho, +1 por índice 0-based
     const adquirente = (linha.adquirente ?? "").trim();
     const plano = (linha.plano ?? "").trim();
 
     if (!adquirente || adquirente.startsWith("Exemplo")) return;
+
+    // Papaparse marca "__parsed_extra" quando a linha tem mais campos que o
+    // cabeçalho - sinal forte de que uma vírgula decimal (ex.: "1,90" na
+    // coluna taxa) colidiu com o separador de coluna e deslocou os campos
+    // seguintes. Sem essa checagem, a linha entraria como "válida" com um
+    // valor de taxa truncado e errado, silenciosamente.
+    if ("__parsed_extra" in linha) {
+      erros.push({
+        linha: numeroLinha,
+        motivo:
+          "Linha com mais colunas do que o esperado - provavelmente a vírgula decimal da taxa colidiu com o separador de coluna do CSV. Use o modelo em Excel (.xlsx) ou baixe o modelo CSV mais recente.",
+      });
+      return;
+    }
     if (!plano) {
       erros.push({ linha: numeroLinha, motivo: "Coluna 'plano' vazia." });
       return;

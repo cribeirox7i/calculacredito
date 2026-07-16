@@ -1,5 +1,6 @@
 import type { ModalidadeTaxa, TaxaMaquininha } from "@/lib/taxas-maquininha";
-import { adicionarTaxa, importarCsv, removerTaxa } from "./actions-maquininhas";
+import { adicionarTaxa, importarArquivo, removerTaxa } from "./actions-maquininhas";
+import { ImportadorArquivo } from "./ImportadorArquivo";
 
 const ROTULO_MODALIDADE: Record<ModalidadeTaxa, string> = {
   pix: "Pix",
@@ -17,36 +18,21 @@ export function SecaoMaquininhas({ taxas }: { taxas: TaxaMaquininha[] }) {
         Taxas de maquininha
       </h2>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Cadastre as taxas por adquirente manualmente ou em lote via CSV. Cada
-        linha representa uma combinação de adquirente + plano + modalidade
-        (Pix, débito, crédito à vista ou crédito parcelado com número de
-        parcelas). Reimportar um CSV substitui todas as linhas do(s)
-        adquirente(s) presentes no arquivo - adquirentes ausentes do CSV não
-        são afetados.
+        Cadastre as taxas por adquirente manualmente ou em lote via CSV ou
+        Excel. Cada linha representa uma combinação de adquirente + plano +
+        modalidade (Pix, débito, crédito à vista ou crédito parcelado com
+        número de parcelas). Reimportar um arquivo substitui todas as linhas
+        do(s) adquirente(s) presentes nele - adquirentes ausentes não são
+        afetados.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <a
-          href="/admin/exportar-maquininhas"
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
-          Baixar modelo CSV
-        </a>
-        <form action={importarCsv} className="flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            name="arquivo"
-            accept=".csv,text/csv"
-            required
-            className="text-sm text-zinc-700 dark:text-zinc-300"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-          >
-            Importar CSV
-          </button>
-        </form>
+      <div className="mt-6">
+        <ImportadorArquivo
+          titulo="Importar taxas em lote"
+          action={importarArquivo}
+          exportarCsvHref="/admin/exportar-maquininhas"
+          exportarXlsxHref="/admin/exportar-maquininhas-xlsx"
+        />
       </div>
 
       <form

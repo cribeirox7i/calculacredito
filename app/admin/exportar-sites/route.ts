@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { gerarCsvModeloSites } from "@/lib/csv-sites";
+import { gerarCsvModeloSites } from "@/lib/planilha-sites";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 
 export const dynamic = "force-dynamic";

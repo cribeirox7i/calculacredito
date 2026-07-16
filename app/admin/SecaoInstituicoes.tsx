@@ -1,4 +1,5 @@
-import { excluirLogo, excluirSite, importarSitesCsv, salvarInstituicao } from "./actions-instituicoes";
+import { excluirLogo, excluirSite, importarArquivoSites, salvarInstituicao } from "./actions-instituicoes";
+import { ImportadorArquivo } from "./ImportadorArquivo";
 
 export function SecaoInstituicoes({
   logosPorCnpj8,
@@ -22,28 +23,13 @@ export function SecaoInstituicoes({
         Preencha o logo e/ou o site - não precisa dos dois de uma vez.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <a
-          href="/admin/exportar-sites"
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
-          Baixar modelo CSV (sites)
-        </a>
-        <form action={importarSitesCsv} className="flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            name="arquivo"
-            accept=".csv,text/csv"
-            required
-            className="text-sm text-zinc-700 dark:text-zinc-300"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-          >
-            Importar CSV
-          </button>
-        </form>
+      <div className="mt-6">
+        <ImportadorArquivo
+          titulo="Importar sites em lote"
+          action={importarArquivoSites}
+          exportarCsvHref="/admin/exportar-sites"
+          exportarXlsxHref="/admin/exportar-sites-xlsx"
+        />
       </div>
 
       <form

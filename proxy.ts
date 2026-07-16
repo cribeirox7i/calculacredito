@@ -14,5 +14,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/exportar-sites", "/admin/exportar-maquininhas"],
+  matcher: [
+    "/admin",
+    "/admin/exportar-sites",
+    "/admin/exportar-sites-xlsx",
+    "/admin/exportar-maquininhas",
+    "/admin/exportar-maquininhas-xlsx",
+  ],
 };

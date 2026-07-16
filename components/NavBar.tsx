@@ -76,7 +76,7 @@ export function NavBar() {
 
   return (
     <nav className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-      <div className="mx-auto flex w-full items-center gap-4 overflow-x-auto px-4 py-3 sm:px-6 lg:w-[70%]">
+      <div className="mx-auto flex w-full flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 lg:w-[70%]">
         <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
           <Logomarca />
           <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -107,7 +107,9 @@ export function NavBar() {
           </Link>
         </div>
 
-        <div className="ml-auto flex shrink-0 gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        <ThemeToggle />
+
+        <div className="flex w-full flex-wrap gap-1.5">
           {links.map((link) => {
             const ativo = pathname.startsWith(link.prefixoAtivo ?? link.href);
 
@@ -115,10 +117,10 @@ export function NavBar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   ativo
                     ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
                 {link.label}
@@ -126,8 +128,6 @@ export function NavBar() {
             );
           })}
         </div>
-
-        <ThemeToggle />
       </div>
     </nav>
   );

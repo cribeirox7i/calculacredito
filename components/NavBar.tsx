@@ -85,7 +85,7 @@ export function NavBar() {
                 : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             }`}
           >
-            Pessoa Física
+            Pessoas
           </Link>
           <Link
             href="/capital-giro/curto/prefixado"
@@ -95,7 +95,7 @@ export function NavBar() {
                 : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             }`}
           >
-            Pessoa Jurídica
+            Empresas
           </Link>
         </div>
 

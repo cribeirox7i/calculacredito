@@ -9,7 +9,21 @@ export type LinhaPdf = {
 };
 
 function formatarMoeda(valor: number): string {
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+// Os títulos das páginas seguem o padrão "Modalidade - Submodalidade" (ex.:
+// "Simulador de crédito consignado - Aposentados e pensionistas (INSS)"),
+// então basta separar no primeiro " - " pra virar título + subtítulo no PDF.
+function dividirTitulo(titulo: string): { titulo: string; subtitulo?: string } {
+  const indice = titulo.indexOf(" - ");
+  if (indice === -1) return { titulo };
+  return { titulo: titulo.slice(0, indice), subtitulo: titulo.slice(indice + 3) };
 }
 
 // Mesma logomarca usada em components/NavBar.tsx, rasterizada em canvas pra
@@ -61,23 +75,38 @@ export async function gerarPdfSimulacao(dados: {
   const [{ jsPDF }, logoDataUrl] = await Promise.all([import("jspdf"), obterLogoDataUrl()]);
   const doc = new jsPDF();
   const margemEsquerda = 14;
-  const tituloX = logoDataUrl ? margemEsquerda + 12 : margemEsquerda;
-  let y = 20;
+  const margemDireita = 195;
+  const { titulo, subtitulo } = dividirTitulo(dados.titulo);
+  let y = 18;
 
   if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "PNG", margemEsquerda, y - 8, 10, 10);
+    doc.addImage(logoDataUrl, "PNG", margemEsquerda, y - 6, 8, 8);
   }
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(5, 150, 105);
+  doc.text("CalculaCredito", logoDataUrl ? margemEsquerda + 10 : margemEsquerda, y);
+  y += 10;
 
+  doc.setTextColor(0);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text(dados.titulo, tituloX, y);
+  doc.text(titulo, margemEsquerda, y);
   y += 7;
+
+  if (subtitulo) {
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80);
+    doc.text(subtitulo, margemEsquerda, y);
+    y += 7;
+  }
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(100);
   const dataGeracao = new Date().toLocaleDateString("pt-BR");
-  doc.text(`Gerado em ${dataGeracao} pelo CalculaCredito - ${dados.periodoLabel}`, margemEsquerda, y);
+  doc.text(`Gerado em ${dataGeracao} - ${dados.periodoLabel}`, margemEsquerda, y);
   y += 10;
 
   doc.setTextColor(0);
@@ -88,16 +117,17 @@ export async function gerarPdfSimulacao(dados: {
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  const linhasResumo = [
-    `Valor desejado: ${formatarMoeda(dados.valor)}`,
-    `Prazo: ${dados.meses} meses`,
-    `Taxa de juros: ${dados.taxa.toFixed(2)}% ao mês`,
-    `Parcela mensal: ${formatarMoeda(dados.parcela)}`,
-    `Total pago ao final: ${formatarMoeda(dados.totalPago)}`,
-    `Total de juros: ${formatarMoeda(dados.totalJuros)}`,
+  const camposResumo = [
+    { label: "Valor desejado", valor: formatarMoeda(dados.valor) },
+    { label: "Prazo", valor: `${dados.meses} meses` },
+    { label: "Taxa de juros", valor: `${dados.taxa.toFixed(2)}% ao mês` },
+    { label: "Parcela mensal", valor: formatarMoeda(dados.parcela) },
+    { label: "Total pago ao final", valor: formatarMoeda(dados.totalPago) },
+    { label: "Total de juros", valor: formatarMoeda(dados.totalJuros) },
   ];
-  for (const linha of linhasResumo) {
-    doc.text(linha, margemEsquerda, y);
+  for (const campo of camposResumo) {
+    doc.text(campo.label, margemEsquerda, y);
+    doc.text(campo.valor, margemDireita, y, { align: "right" });
     y += 6;
   }
   y += 6;
@@ -108,21 +138,24 @@ export async function gerarPdfSimulacao(dados: {
   y += 8;
 
   const colunas = [
-    { label: "#", x: margemEsquerda, w: 8 },
-    { label: "Instituição", x: margemEsquerda + 10, w: 70 },
-    { label: "% mês", x: margemEsquerda + 82, w: 18 },
-    { label: "% ano", x: margemEsquerda + 102, w: 18 },
-    { label: "Parcela (R$)", x: margemEsquerda + 122, w: 30 },
-    { label: "Total (R$)", x: margemEsquerda + 155, w: 30 },
+    { label: "#", x: margemEsquerda, direita: margemEsquerda + 6, alinhar: false },
+    { label: "Instituição", x: margemEsquerda + 10, direita: 0, alinhar: false },
+    { label: "% mês", x: 0, direita: margemEsquerda + 96, alinhar: true },
+    { label: "% ano", x: 0, direita: margemEsquerda + 116, alinhar: true },
+    { label: "Parcela (R$)", x: 0, direita: margemEsquerda + 146, alinhar: true },
+    { label: "Total (R$)", x: 0, direita: margemEsquerda + 181, alinhar: true },
   ];
 
   function desenharCabecalho() {
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    for (const c of colunas) doc.text(c.label, c.x, y);
+    for (const c of colunas) {
+      if (c.alinhar) doc.text(c.label, c.direita, y, { align: "right" });
+      else doc.text(c.label, c.x, y);
+    }
     y += 4;
     doc.setDrawColor(200);
-    doc.line(margemEsquerda, y, 195, y);
+    doc.line(margemEsquerda, y, margemDireita, y);
     y += 7;
   }
 
@@ -139,10 +172,20 @@ export async function gerarPdfSimulacao(dados: {
 
     doc.text(String(l.posicao), colunas[0].x, y);
     doc.text(l.instituicao.slice(0, 38), colunas[1].x, y);
-    doc.text(`${l.taxaAoMes.toFixed(2)}%`, colunas[2].x, y);
-    doc.text(`${l.taxaAoAno.toFixed(2)}%`, colunas[3].x, y);
-    doc.text(l.parcela !== null ? l.parcela.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "-", colunas[4].x, y);
-    doc.text(l.totalPago !== null ? l.totalPago.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "-", colunas[5].x, y);
+    doc.text(`${l.taxaAoMes.toFixed(2)}%`, colunas[2].direita, y, { align: "right" });
+    doc.text(`${l.taxaAoAno.toFixed(2)}%`, colunas[3].direita, y, { align: "right" });
+    doc.text(
+      l.parcela !== null ? l.parcela.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-",
+      colunas[4].direita,
+      y,
+      { align: "right" }
+    );
+    doc.text(
+      l.totalPago !== null ? l.totalPago.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-",
+      colunas[5].direita,
+      y,
+      { align: "right" }
+    );
     y += 6;
   }
 

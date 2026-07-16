@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { Footer } from "@/components/Footer";
 import { NavBar } from "@/components/NavBar";
 import "./globals.css";
 
@@ -58,7 +59,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
         <NavBar />
-        {children}
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   );

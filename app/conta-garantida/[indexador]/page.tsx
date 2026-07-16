@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchTaxasDiaria } from "@/lib/bcb";
+import { fetchTaxaCDI, fetchTaxasDiaria } from "@/lib/bcb";
 import { formatarData } from "@/lib/formato";
 import { SimuladorModalidade } from "@/components/SimuladorModalidade";
 import { MODALIDADES_PJ } from "@/lib/modalidades";
@@ -38,7 +38,10 @@ export default async function ContaGarantidaPage({ params }: Params) {
   if (!ehIndexadorValido(indexador)) notFound();
 
   const modalidade = MODALIDADES_PJ.contaGarantida[indexador].nome;
-  const dados = await fetchTaxasDiaria(modalidade);
+  const [dados, cdi] = await Promise.all([
+    fetchTaxasDiaria(modalidade),
+    indexador === "posfixado" ? fetchTaxaCDI() : Promise.resolve(null),
+  ]);
 
   return (
     <>
@@ -69,6 +72,7 @@ export default async function ContaGarantidaPage({ params }: Params) {
         mediaAoAno={dados.mediaAoAno}
         valorInicial={20000}
         mesesInicial={6}
+        indexadorPosFixado={cdi !== null ? { nome: "CDI", taxaAnual: cdi } : undefined}
         disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

@@ -17,6 +17,7 @@ export async function SimuladorModalidade({
   mesesInicial,
   disclaimerExtra,
   gruposPorPrazo,
+  indexadorPosFixado,
   children,
 }: {
   titulo: string;
@@ -29,6 +30,7 @@ export async function SimuladorModalidade({
   mesesInicial?: number;
   disclaimerExtra?: string;
   gruposPorPrazo?: { limiteMeses: number; curto: GrupoTaxas; longo: GrupoTaxas; labelCurto: string; labelLongo: string };
+  indexadorPosFixado?: { nome: string; taxaAnual: number };
   children: ReactNode;
 }) {
   const [logosPorCnpj8, sitesPorCnpj8] = await Promise.all([
@@ -57,6 +59,7 @@ export async function SimuladorModalidade({
           logosPorCnpj8={logosPorCnpj8}
           sitesPorCnpj8={sitesPorCnpj8}
           gruposPorPrazo={gruposPorPrazo}
+          indexadorPosFixado={indexadorPosFixado}
         />
       </div>
 

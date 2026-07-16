@@ -5,15 +5,18 @@ import { lerLinhasPlanilha } from "@/lib/planilha";
 import { validarLinhasTaxas } from "@/lib/planilha-maquininhas";
 import {
   adicionarTaxaMaquininha,
+  atualizarTaxaMaquininha,
+  limparTodasTaxas,
   removerTaxaMaquininha,
   substituirTaxasDoAdquirente,
   type ModalidadeTaxa,
+  type TaxaMaquininha,
 } from "@/lib/taxas-maquininha";
 import type { ResultadoImportacaoUI } from "./tipos-importacao";
 
 const MODALIDADES_VALIDAS: ModalidadeTaxa[] = ["pix", "debito", "credito_vista", "credito_parcelado"];
 
-export async function adicionarTaxa(formData: FormData) {
+function lerCamposTaxa(formData: FormData): Omit<TaxaMaquininha, "id" | "atualizadoEm"> {
   const adquirente = String(formData.get("adquirente") ?? "").trim();
   const plano = String(formData.get("plano") ?? "").trim();
   const modalidade = String(formData.get("modalidade") ?? "") as ModalidadeTaxa;
@@ -41,21 +44,29 @@ export async function adicionarTaxa(formData: FormData) {
     throw new Error("Taxa inválida.");
   }
 
-  await adicionarTaxaMaquininha({
-    adquirente,
-    plano,
-    modalidade,
-    parcelas,
-    taxa,
-    fonteUrl: fonteUrl || null,
-  });
+  return { adquirente, plano, modalidade, parcelas, taxa, fonteUrl: fonteUrl || null };
+}
 
+export async function adicionarTaxa(formData: FormData) {
+  await adicionarTaxaMaquininha(lerCamposTaxa(formData));
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
+export async function editarTaxa(id: string, formData: FormData) {
+  await atualizarTaxaMaquininha(id, lerCamposTaxa(formData));
   revalidatePath("/admin");
   revalidatePath("/", "layout");
 }
 
 export async function removerTaxa(id: string) {
   await removerTaxaMaquininha(id);
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
+export async function limparTaxas() {
+  await limparTodasTaxas();
   revalidatePath("/admin");
   revalidatePath("/", "layout");
 }

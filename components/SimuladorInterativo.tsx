@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
-import { simularPrice, type SimulacaoPrice } from "@/lib/amortizacao";
+import { simularPrice, taxaAnualParaMensal, type SimulacaoPrice } from "@/lib/amortizacao";
 import { corAvatar, iniciaisInstituicao, removerAcentos } from "@/lib/logos";
 import { gerarPdfSimulacao } from "@/lib/pdf";
+import { CampoMoeda } from "@/components/CampoMoeda";
 
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -69,6 +70,7 @@ export function SimuladorInterativo({
   logosPorCnpj8 = {},
   sitesPorCnpj8 = {},
   gruposPorPrazo,
+  indexadorPosFixado,
 }: {
   titulo: string;
   periodoLabel: string;
@@ -83,10 +85,15 @@ export function SimuladorInterativo({
   // conforme o prazo (meses) preenchido na calculadora, em vez de usar um
   // seletor de rota separado (ex.: capital de giro até/acima de 365 dias).
   gruposPorPrazo?: { limiteMeses: number; curto: GrupoTaxas; longo: GrupoTaxas; labelCurto: string; labelLongo: string };
+  // Quando informado (páginas "pós-fixado"), troca o campo manual de taxa
+  // por um percentual do indexador (ex.: "80% do CDI") - a taxa efetiva vem
+  // do indexador anualizado × esse percentual, convertida pra mensal.
+  indexadorPosFixado?: { nome: string; taxaAnual: number };
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
   const [taxa, setTaxa] = useState(Number(taxaMediaAoMes.toFixed(2)));
+  const [percentualIndexador, setPercentualIndexador] = useState(100);
   const [mostrarTodos, setMostrarTodos] = useState(false);
   const [busca, setBusca] = useState("");
   const [ordenarPor, setOrdenarPor] = useState<Coluna>("posicao");
@@ -100,10 +107,14 @@ export function SimuladorInterativo({
       : gruposPorPrazo.longo
     : { taxas, taxaMediaAoMes, mediaAoAno };
 
+  const taxaEfetiva = indexadorPosFixado
+    ? taxaAnualParaMensal((indexadorPosFixado.taxaAnual * percentualIndexador) / 100)
+    : taxa;
+
   const resultado = useMemo(() => {
-    if (valor <= 0 || meses <= 0 || taxa <= 0) return null;
-    return simularPrice(valor, taxa, meses);
-  }, [valor, meses, taxa]);
+    if (valor <= 0 || meses <= 0 || taxaEfetiva <= 0) return null;
+    return simularPrice(valor, taxaEfetiva, meses);
+  }, [valor, meses, taxaEfetiva]);
 
   const buscaNormalizada = removerAcentos(busca.trim().toLowerCase());
 
@@ -148,7 +159,7 @@ export function SimuladorInterativo({
       periodoLabel,
       valor,
       meses,
-      taxa,
+      taxa: taxaEfetiva,
       parcela: resultado.parcela,
       totalPago: resultado.totalPago,
       totalJuros: resultado.totalJuros,
@@ -210,11 +221,9 @@ export function SimuladorInterativo({
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Valor desejado
-            <input
-              type="number"
-              min={1}
-              value={valor}
-              onChange={(e) => setValor(Number(e.target.value))}
+            <CampoMoeda
+              valor={valor}
+              onChange={setValor}
               className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
             />
           </label>
@@ -229,25 +238,50 @@ export function SimuladorInterativo({
               className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Taxa de juros (% ao mês)
-            <input
-              type="number"
-              min={0.01}
-              step={0.01}
-              value={taxa}
-              onChange={(e) => setTaxa(Number(e.target.value))}
-              className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-            />
-          </label>
+          {indexadorPosFixado ? (
+            <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Percentual do {indexadorPosFixado.nome} (%)
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={percentualIndexador}
+                onChange={(e) => setPercentualIndexador(Number(e.target.value))}
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
+              />
+            </label>
+          ) : (
+            <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Taxa de juros (% ao mês)
+              <input
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={taxa}
+                onChange={(e) => setTaxa(Number(e.target.value))}
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
+              />
+            </label>
+          )}
         </div>
 
-        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Taxa pré-preenchida com a média das instituições financeiras reportada
-          ao Banco Central no período mais recente. A taxa que você vai conseguir
-          depende do seu perfil de crédito - ajuste o campo acima para simular
-          outros cenários.
-        </p>
+        {indexadorPosFixado ? (
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            {indexadorPosFixado.nome} atual: {indexadorPosFixado.taxaAnual.toFixed(2)}% ao ano. Com{" "}
+            {percentualIndexador}% do {indexadorPosFixado.nome}, a taxa efetiva usada na simulação é{" "}
+            {taxaEfetiva.toFixed(2)}% ao mês (equivalente a{" "}
+            {((Math.pow(1 + taxaEfetiva / 100, 12) - 1) * 100).toFixed(2)}% ao ano). Contratos pós-fixados
+            costumam ser descritos como &ldquo;X% do {indexadorPosFixado.nome}&rdquo; - ajuste o percentual
+            acima conforme a proposta que você recebeu.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            Taxa pré-preenchida com a média das instituições financeiras reportada
+            ao Banco Central no período mais recente. A taxa que você vai conseguir
+            depende do seu perfil de crédito - ajuste o campo acima para simular
+            outros cenários.
+          </p>
+        )}
 
         {resultado && (
           <div className="mt-6 grid gap-4 border-t border-zinc-200 pt-6 sm:grid-cols-3 dark:border-zinc-800">

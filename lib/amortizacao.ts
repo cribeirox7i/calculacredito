@@ -13,6 +13,13 @@ export type SimulacaoPrice = {
   parcelas: ParcelaPrice[];
 };
 
+// Conversão de taxa efetiva anual pra mensal (juros compostos) - usada nas
+// simulações pós-fixadas, onde a taxa efetiva mensal é derivada de um
+// indexador anualizado (ex.: CDI) multiplicado pelo percentual contratado.
+export function taxaAnualParaMensal(taxaAnualPercentual: number): number {
+  return (Math.pow(1 + taxaAnualPercentual / 100, 1 / 12) - 1) * 100;
+}
+
 // Tabela Price (sistema francês de amortização) - parcelas fixas, padrão de
 // mercado para crédito pessoal, consignado e financiamento de veículo no Brasil.
 export function simularPrice(

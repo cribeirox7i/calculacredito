@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchTaxasDiaria } from "@/lib/bcb";
+import { fetchTaxaCDI, fetchTaxasDiaria } from "@/lib/bcb";
 import { formatarData } from "@/lib/formato";
 import { SimuladorModalidade } from "@/components/SimuladorModalidade";
 import { MODALIDADES_PJ } from "@/lib/modalidades";
@@ -37,9 +37,10 @@ export default async function CapitalGiroPage({ params }: Params) {
   const { indexador } = await params;
   if (!ehIndexadorValido(indexador)) notFound();
 
-  const [dadosCurto, dadosLongo] = await Promise.all([
+  const [dadosCurto, dadosLongo, cdi] = await Promise.all([
     fetchTaxasDiaria(MODALIDADES_PJ.capitalGiro.curto[indexador].nome),
     fetchTaxasDiaria(MODALIDADES_PJ.capitalGiro.longo[indexador].nome),
+    indexador === "posfixado" ? fetchTaxaCDI() : Promise.resolve(null),
   ]);
 
   return (
@@ -86,6 +87,7 @@ export default async function CapitalGiroPage({ params }: Params) {
             mediaAoAno: dadosLongo.mediaAoAno,
           },
         }}
+        indexadorPosFixado={cdi !== null ? { nome: "CDI", taxaAnual: cdi } : undefined}
         disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física. A tabela abaixo troca automaticamente entre as taxas de até 365 dias e acima de 365 dias conforme o prazo (meses) preenchido na calculadora."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

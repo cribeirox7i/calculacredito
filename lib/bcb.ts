@@ -1,6 +1,26 @@
 const BCB_BASE_URL =
   "https://olinda.bcb.gov.br/olinda/servico/taxaJuros/versao/v2/odata";
 
+// Série 4389 do SGS (Sistema Gerenciador de Séries Temporais) - "Taxa de
+// juros - CDI anualizada base 252", % a.a., validada com chamada real em
+// 2026-07-16. Usada nas simulações pós-fixadas (taxa efetiva = CDI × % do
+// indexador contratado).
+const BCB_SGS_URL = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json";
+
+export async function fetchTaxaCDI(): Promise<number> {
+  const res = await fetch(BCB_SGS_URL, { next: { revalidate: 60 * 60 * 24 } });
+  if (!res.ok) {
+    throw new Error(`Falha ao consultar a taxa do CDI (HTTP ${res.status})`);
+  }
+
+  const json = (await res.json()) as { data: string; valor: string }[];
+  if (json.length === 0) {
+    throw new Error("Nenhum valor de CDI retornado pelo Banco Central.");
+  }
+
+  return Number(json[0].valor);
+}
+
 export type TaxaInstituicao = {
   instituicao: string;
   cnpj8: string;

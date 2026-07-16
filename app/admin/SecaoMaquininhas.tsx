@@ -1,6 +1,8 @@
 import type { ModalidadeTaxa, TaxaMaquininha } from "@/lib/taxas-maquininha";
-import { adicionarTaxa, importarArquivo, removerTaxa } from "./actions-maquininhas";
+import { adicionarTaxa, importarArquivo } from "./actions-maquininhas";
+import { BotaoLimparTaxas } from "./BotaoLimparTaxas";
 import { ImportadorArquivo } from "./ImportadorArquivo";
+import { LinhaTaxaMaquininha } from "./LinhaTaxaMaquininha";
 
 const ROTULO_MODALIDADE: Record<ModalidadeTaxa, string> = {
   pix: "Pix",
@@ -115,6 +117,13 @@ export function SecaoMaquininhas({ taxas }: { taxas: TaxaMaquininha[] }) {
         </button>
       </form>
 
+      {adquirentes.length > 0 && (
+        <div className="mt-8 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Taxas cadastradas</h3>
+          <BotaoLimparTaxas />
+        </div>
+      )}
+
       {adquirentes.map((adquirente) => {
         const linhas = taxas
           .filter((t) => t.adquirente === adquirente)
@@ -137,26 +146,7 @@ export function SecaoMaquininhas({ taxas }: { taxas: TaxaMaquininha[] }) {
                 </thead>
                 <tbody>
                   {linhas.map((t) => (
-                    <tr key={t.id} className="border-t border-zinc-100 dark:border-zinc-800">
-                      <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.plano}</td>
-                      <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                        {ROTULO_MODALIDADE[t.modalidade]}
-                      </td>
-                      <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">{t.parcelas ?? "-"}</td>
-                      <td className="px-4 py-2 text-zinc-900 dark:text-zinc-100">
-                        {t.taxa.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}%
-                      </td>
-                      <td className="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
-                        {new Date(t.atualizadoEm).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="px-4 py-2">
-                        <form action={removerTaxa.bind(null, t.id)}>
-                          <button type="submit" className="text-xs text-red-600 underline dark:text-red-400">
-                            Excluir
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
+                    <LinhaTaxaMaquininha key={t.id} taxa={t} />
                   ))}
                 </tbody>
               </table>

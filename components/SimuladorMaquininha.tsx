@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ModalidadeTaxa, TaxaMaquininha } from "@/lib/taxas-maquininha";
 import { corAvatar, iniciaisInstituicao, removerAcentos } from "@/lib/logos";
+import { CampoMoeda } from "@/components/CampoMoeda";
 
 function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -91,11 +92,9 @@ export function SimuladorMaquininha({ taxas }: { taxas: TaxaMaquininha[] }) {
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Valor da venda
-            <input
-              type="number"
-              min={1}
-              value={valor}
-              onChange={(e) => setValor(Number(e.target.value))}
+            <CampoMoeda
+              valor={valor}
+              onChange={setValor}
               className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
             />
           </label>

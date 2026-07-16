@@ -76,6 +76,21 @@ export async function removerTaxaMaquininha(id: string): Promise<void> {
   await gravar(taxas.filter((t) => t.id !== id));
 }
 
+export async function atualizarTaxaMaquininha(
+  id: string,
+  entrada: Omit<TaxaMaquininha, "id" | "atualizadoEm">
+): Promise<void> {
+  const taxas = await obterTaxasAtuais();
+  const indice = taxas.findIndex((t) => t.id === id);
+  if (indice === -1) throw new Error("Taxa não encontrada.");
+  taxas[indice] = { ...entrada, id, atualizadoEm: new Date().toISOString() };
+  await gravar(taxas);
+}
+
+export async function limparTodasTaxas(): Promise<void> {
+  await gravar([]);
+}
+
 // Substitui todas as linhas de um adquirente pelas novas (usado pela
 // importação de CSV) - evita duplicar linhas antigas quando o admin reimporta
 // uma planilha atualizada só daquele adquirente. Linhas de outros adquirentes

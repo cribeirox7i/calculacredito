@@ -13,7 +13,7 @@ export type SimulacaoPrice = {
   parcelas: ParcelaPrice[];
 };
 
-// Tabela Price (sistema francês de amortização) — parcelas fixas, padrão de
+// Tabela Price (sistema francês de amortização) - parcelas fixas, padrão de
 // mercado para crédito pessoal, consignado e financiamento de veículo no Brasil.
 export function simularPrice(
   valor: number,

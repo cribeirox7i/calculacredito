@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { indexador } = await params;
   if (!ehIndexadorValido(indexador)) return {};
   return {
-    title: `Simulador de Conta Garantida — ${LABEL[indexador]}`,
+    title: `Simulador de Conta Garantida - ${LABEL[indexador]}`,
     description:
       "Simule a conta garantida da sua empresa com taxas médias reportadas ao Banco Central do Brasil.",
   };
@@ -69,14 +69,14 @@ export default async function ContaGarantidaPage({ params }: Params) {
         mediaAoAno={dados.mediaAoAno}
         valorInicial={20000}
         mesesInicial={6}
-        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas — não confundir com as modalidades de crédito para pessoa física."
+        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           O que é conta garantida
         </h2>
         <p>
           Conta garantida é um limite de crédito rotativo vinculado à conta
-          corrente da empresa — quando o saldo fica negativo dentro do
+          corrente da empresa - quando o saldo fica negativo dentro do
           limite, os juros dessa modalidade são cobrados automaticamente
           sobre o valor utilizado, sem precisar de uma nova contratação a
           cada uso.
@@ -90,7 +90,7 @@ export default async function ContaGarantidaPage({ params }: Params) {
           curtíssimo prazo (dias), com taxas geralmente mais altas por ser um
           crédito instantâneo e sem burocracia. Já o capital de giro é
           contratado com prazo e parcelas definidas, normalmente com taxas
-          menores — vale usar a conta garantida como reserva emergencial, não
+          menores - vale usar a conta garantida como reserva emergencial, não
           como fonte principal de crédito da empresa.
         </p>
 
@@ -100,7 +100,7 @@ export default async function ContaGarantidaPage({ params }: Params) {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             Use a conta garantida só para cobrir descasamentos de caixa
-            pontuais — o custo de ficar utilizando o limite por muito tempo
+            pontuais - o custo de ficar utilizando o limite por muito tempo
             costuma ser alto.
           </li>
           <li>

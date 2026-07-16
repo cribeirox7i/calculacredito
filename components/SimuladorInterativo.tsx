@@ -156,7 +156,7 @@ export function SimuladorInterativo({
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
           Taxa pré-preenchida com a média das instituições financeiras reportada
           ao Banco Central no período mais recente. A taxa que você vai conseguir
-          depende do seu perfil de crédito — ajuste o campo acima para simular
+          depende do seu perfil de crédito - ajuste o campo acima para simular
           outros cenários.
         </p>
 
@@ -250,13 +250,13 @@ export function SimuladorInterativo({
                     {l.taxaAoAno.toFixed(2)}%
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
-                    {l.simulacao ? formatarNumero(l.simulacao.parcela) : "—"}
+                    {l.simulacao ? formatarNumero(l.simulacao.parcela) : "-"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
-                    {l.simulacao ? formatarNumero(l.simulacao.totalPago) : "—"}
+                    {l.simulacao ? formatarNumero(l.simulacao.totalPago) : "-"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-2 text-right text-zinc-900 dark:text-zinc-100">
-                    {l.simulacao ? formatarNumero(l.simulacao.totalJuros) : "—"}
+                    {l.simulacao ? formatarNumero(l.simulacao.totalJuros) : "-"}
                   </td>
                 </tr>
               ))}

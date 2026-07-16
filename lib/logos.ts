@@ -51,7 +51,7 @@ export function codigoDoCaminho(pathname: string): string {
 }
 
 // A Vercel autentica o Blob por BLOB_READ_WRITE_TOKEN (token clássico) ou,
-// mais recentemente, por OIDC usando BLOB_STORE_ID — só existem depois que
+// mais recentemente, por OIDC usando BLOB_STORE_ID - só existem depois que
 // o Blob Store é ativado no projeto. Sem eles, o site continua funcionando
 // normalmente, só que sem logos (cai no fallback de avatar com iniciais).
 export function blobConfigurado(): boolean {

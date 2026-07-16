@@ -21,25 +21,25 @@ const TIPOS: Record<
   inss: {
     label: "Aposentados e pensionistas (INSS)",
     modalidade: MODALIDADES.consignadoInss.nome,
-    tituloMetadata: "Simulador de Consignado INSS — taxas reais do Banco Central",
+    tituloMetadata: "Simulador de Consignado INSS - taxas reais do Banco Central",
     descricaoMetadata:
       "Simule o empréstimo consignado para aposentados e pensionistas do INSS com taxas médias reportadas ao Banco Central.",
     elegibilidade:
-      "Disponível para quem recebe aposentadoria ou pensão pelo INSS. As parcelas são descontadas direto do benefício mensal, com um limite legal de comprometimento de renda (margem consignável) — por isso é, historicamente, a modalidade com as menores taxas entre todos os tipos de crédito para pessoa física.",
+      "Disponível para quem recebe aposentadoria ou pensão pelo INSS. As parcelas são descontadas direto do benefício mensal, com um limite legal de comprometimento de renda (margem consignável) - por isso é, historicamente, a modalidade com as menores taxas entre todos os tipos de crédito para pessoa física.",
   },
   privado: {
     label: "Empregado (setor privado)",
     modalidade: MODALIDADES.consignadoPrivado.nome,
-    tituloMetadata: "Simulador de Consignado Privado — taxas reais do Banco Central",
+    tituloMetadata: "Simulador de Consignado Privado - taxas reais do Banco Central",
     descricaoMetadata:
       "Simule o empréstimo consignado para empregados de empresas privadas com taxas médias reportadas ao Banco Central.",
     elegibilidade:
-      "Disponível para empregados com carteira assinada (CLT) cuja empresa tenha convênio com a instituição financeira — nem toda empresa oferece a opção. Sem convênio, o desconto em folha não pode ser feito e o crédito consignado privado não fica disponível para esse funcionário.",
+      "Disponível para empregados com carteira assinada (CLT) cuja empresa tenha convênio com a instituição financeira - nem toda empresa oferece a opção. Sem convênio, o desconto em folha não pode ser feito e o crédito consignado privado não fica disponível para esse funcionário.",
   },
   publico: {
     label: "Servidor público",
     modalidade: MODALIDADES.consignadoPublico.nome,
-    tituloMetadata: "Simulador de Consignado para Servidor Público — taxas do Banco Central",
+    tituloMetadata: "Simulador de Consignado para Servidor Público - taxas do Banco Central",
     descricaoMetadata:
       "Simule o empréstimo consignado para servidores públicos federais, estaduais ou municipais com taxas médias reportadas ao Banco Central.",
     elegibilidade:
@@ -94,7 +94,7 @@ export default async function ConsignadoPage({ params }: Params) {
       </div>
 
       <SimuladorModalidade
-        titulo={`Simulador de crédito consignado — ${config.label}`}
+        titulo={`Simulador de crédito consignado - ${config.label}`}
         resumo="Simule sua parcela de consignado usando taxas de mercado reportadas ao Banco Central do Brasil."
         periodoLabel={`Taxas referentes ao período de ${formatarData(dados.inicioPeriodo)} a ${formatarData(dados.fimPeriodo)}.`}
         taxas={dados.taxas}
@@ -112,8 +112,8 @@ export default async function ConsignadoPage({ params }: Params) {
           Como funciona o crédito consignado
         </h2>
         <p>
-          A parcela do consignado é descontada automaticamente na fonte —
-          folha de pagamento, benefício do INSS ou contracheque do servidor —
+          A parcela do consignado é descontada automaticamente na fonte -
+          folha de pagamento, benefício do INSS ou contracheque do servidor -
           antes mesmo do valor chegar à sua conta. Isso praticamente elimina o
           risco de inadimplência para o banco, e é o principal motivo das
           taxas serem muito menores que as do crédito pessoal comum. Por lei,
@@ -128,12 +128,12 @@ export default async function ConsignadoPage({ params }: Params) {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             Consulte sua margem consignável disponível antes de simular um
-            valor — pelo aplicativo do INSS (Meu INSS), do seu órgão público
+            valor - pelo aplicativo do INSS (Meu INSS), do seu órgão público
             ou do RH da empresa, dependendo do seu caso.
           </li>
           <li>
             Cuidado com ofertas de refinanciamento ou portabilidade não
-            solicitadas por telefone — golpes envolvendo consignado do INSS
+            solicitadas por telefone - golpes envolvendo consignado do INSS
             são comuns; sempre confirme a operação pelos canais oficiais.
           </li>
           <li>

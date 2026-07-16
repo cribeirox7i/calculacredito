@@ -49,9 +49,9 @@ type LinhaMensal = {
 };
 
 // codigoModalidade vem nulo nas linhas de dado da API (só existe populado no
-// recurso ParametrosConsulta) — por isso o filtro precisa usar o nome exato
+// recurso ParametrosConsulta) - por isso o filtro precisa usar o nome exato
 // da modalidade, não o código.
-// A API OData do BCB exige espaços como %20 — URLSearchParams codifica como
+// A API OData do BCB exige espaços como %20 - URLSearchParams codifica como
 // "+", o que quebra o parser de $filter no servidor (erro 400). Por isso a
 // query string é montada manualmente com encodeURIComponent (que usa %20).
 export async function fetchTaxasDiaria(modalidade: string): Promise<TaxasModalidade> {

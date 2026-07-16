@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { prazo, indexador } = await params;
   if (!ehPrazoValido(prazo) || !ehIndexadorValido(indexador)) return {};
   return {
-    title: `Simulador de Capital de Giro — ${LABEL_PRAZO[prazo]}, ${LABEL_INDEXADOR[indexador]}`,
+    title: `Simulador de Capital de Giro - ${LABEL_PRAZO[prazo]}, ${LABEL_INDEXADOR[indexador]}`,
     description:
       "Simule capital de giro para sua empresa com taxas médias reportadas ao Banco Central do Brasil.",
   };
@@ -91,7 +91,7 @@ export default async function CapitalGiroPage({ params }: Params) {
       </div>
 
       <SimuladorModalidade
-        titulo={`Simulador de capital de giro — ${LABEL_PRAZO[prazo]}`}
+        titulo={`Simulador de capital de giro - ${LABEL_PRAZO[prazo]}`}
         resumo="Simule a parcela do capital de giro da sua empresa usando taxas de mercado reportadas ao Banco Central do Brasil."
         periodoLabel={`Taxas referentes ao período de ${formatarData(dados.inicioPeriodo)} a ${formatarData(dados.fimPeriodo)}.`}
         taxas={dados.taxas}
@@ -99,15 +99,15 @@ export default async function CapitalGiroPage({ params }: Params) {
         mediaAoAno={dados.mediaAoAno}
         valorInicial={VALOR_INICIAL[prazo]}
         mesesInicial={MESES_INICIAL[prazo]}
-        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas — não confundir com as modalidades de crédito para pessoa física."
+        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           O que é capital de giro
         </h2>
         <p>
           Capital de giro é o crédito que financia as operações do dia a dia
-          da empresa — compra de estoque, pagamento de fornecedores, folha de
-          pagamento — sem estar atrelado a um investimento específico. É a
+          da empresa - compra de estoque, pagamento de fornecedores, folha de
+          pagamento - sem estar atrelado a um investimento específico. É a
           modalidade de crédito PJ mais comum para cobrir descasamentos entre
           o que a empresa recebe e o que precisa pagar no curto prazo.
         </p>
@@ -129,7 +129,7 @@ export default async function CapitalGiroPage({ params }: Params) {
         <p>
           No <strong>prefixado</strong>, a taxa de juros é fixa durante todo o
           contrato. No <strong>pós-fixado referenciado em juros flutuantes</strong>,
-          a taxa acompanha um indexador de mercado (como o CDI) — a parcela
+          a taxa acompanha um indexador de mercado (como o CDI) - a parcela
           pode variar com o tempo conforme esse indexador sobe ou desce.
         </p>
 
@@ -138,12 +138,12 @@ export default async function CapitalGiroPage({ params }: Params) {
         </h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            Compare o CET entre bancos diferentes — a diferença de taxa entre
+            Compare o CET entre bancos diferentes - a diferença de taxa entre
             instituições costuma ser grande em crédito PJ.
           </li>
           <li>
             Avalie se a necessidade é pontual (curto prazo) ou estrutural
-            (longo prazo) antes de escolher — contratar prazo maior que o
+            (longo prazo) antes de escolher - contratar prazo maior que o
             necessário aumenta o custo total em juros.
           </li>
           <li>

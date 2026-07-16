@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "CalculaCredito — simule com taxas reais do Banco Central",
+    default: "CalculaCredito - simule com taxas reais do Banco Central",
     template: "%s | CalculaCredito",
   },
   description:

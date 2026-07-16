@@ -1,5 +1,5 @@
 // Nomes exatos de modalidade validados via ParametrosConsulta da API do BCB
-// (ver PLANO.md seção 3) — usar sempre esta lista em vez de strings soltas,
+// (ver PLANO.md seção 3) - usar sempre esta lista em vez de strings soltas,
 // já que o filtro da API depende do texto exato bater.
 export const MODALIDADES = {
   pessoal: {
@@ -58,7 +58,7 @@ export const MODALIDADES_IMOBILIARIO = {
   },
 } as const;
 
-// Modalidades de crédito Pessoa Jurídica — códigos e nomes exatos validados
+// Modalidades de crédito Pessoa Jurídica - códigos e nomes exatos validados
 // via ParametrosConsulta (segmento "Pessoa Jurídica"), mesmo recurso diário
 // já usado pelas modalidades PF (nenhuma modalidade PJ está no recurso mensal).
 export const MODALIDADES_PJ = {

@@ -28,7 +28,7 @@ export default async function AdminLogosPage() {
         Logos das instituições
       </h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Informe o código CNPJ8 (Banco Central) da instituição — ele aparece
+        Informe o código CNPJ8 (Banco Central) da instituição - ele aparece
         em texto pequeno abaixo do nome de cada instituição nas tabelas do
         site. É a chave usada para casar o logo com a instituição certa, já
         que nomes têm variações entre modalidades.

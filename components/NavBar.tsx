@@ -68,40 +68,38 @@ export function NavBar() {
 
   return (
     <nav className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-      <div className="mx-auto flex w-full flex-col gap-2 px-4 py-3 sm:px-6 lg:w-[70%]">
-        <div className="flex items-center gap-4 overflow-x-auto">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Logomarca />
-            <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              CalculaCredito
-            </span>
-          </Link>
+      <div className="mx-auto flex w-full items-center gap-4 overflow-x-auto px-4 py-3 sm:px-6 lg:w-[70%]">
+        <Link href="/" className="mr-2 flex shrink-0 items-center gap-2">
+          <Logomarca />
+          <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            CalculaCredito
+          </span>
+        </Link>
 
-          <div className="flex shrink-0 gap-1 rounded-full border border-zinc-200 p-1 dark:border-zinc-700">
-            <Link
-              href="/credito-pessoal"
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                !emPj
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-              }`}
-            >
-              Pessoa Física
-            </Link>
-            <Link
-              href="/capital-giro/curto/prefixado"
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                emPj
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-              }`}
-            >
-              Pessoa Jurídica
-            </Link>
-          </div>
+        <div className="flex shrink-0 gap-0.5 rounded-full border border-zinc-200 p-0.5 dark:border-zinc-700">
+          <Link
+            href="/credito-pessoal"
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+              !emPj
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            }`}
+          >
+            Pessoa Física
+          </Link>
+          <Link
+            href="/capital-giro/curto/prefixado"
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+              emPj
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            }`}
+          >
+            Pessoa Jurídica
+          </Link>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="ml-auto flex shrink-0 gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
           {links.map((link) => {
             const ativo = pathname.startsWith(link.prefixoAtivo ?? link.href);
 
@@ -112,7 +110,7 @@ export function NavBar() {
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                   ativo
                     ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-700"
                 }`}
               >
                 {link.label}

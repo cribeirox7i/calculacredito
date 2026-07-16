@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { tipo, indexador } = await params;
   if (!ehTipoValido(tipo) || !ehIndexadorValido(indexador)) return {};
   return {
-    title: `Simulador de Financiamento Imobiliário — ${LABEL_TIPO[tipo]}, ${LABEL_INDEXADOR[indexador]}`,
+    title: `Simulador de Financiamento Imobiliário - ${LABEL_TIPO[tipo]}, ${LABEL_INDEXADOR[indexador]}`,
     description:
       "Simule o financiamento do seu imóvel com taxas médias reportadas ao Banco Central do Brasil. Entenda SFH x SFI, os indexadores TR/IPCA e dicas antes de assinar.",
   };
@@ -89,15 +89,15 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
       </div>
 
       <SimuladorModalidade
-        titulo={`Simulador de financiamento imobiliário — ${LABEL_TIPO[tipo]}`}
+        titulo={`Simulador de financiamento imobiliário - ${LABEL_TIPO[tipo]}`}
         resumo="Simule a parcela do financiamento do seu imóvel usando taxas de mercado reportadas ao Banco Central do Brasil."
-        periodoLabel={`Taxas referentes a ${formatarMesAno(dados.anoMes)} — ${LABEL_INDEXADOR[indexador]}.`}
+        periodoLabel={`Taxas referentes a ${formatarMesAno(dados.anoMes)} - ${LABEL_INDEXADOR[indexador]}.`}
         taxas={dados.taxas}
         mediaAoMes={dados.mediaAoMes}
         mediaAoAno={dados.mediaAoAno}
         valorInicial={300000}
         mesesInicial={360}
-        disclaimerExtra="Esta simulação usa a Tabela Price (parcelas fixas); muitos contratos imobiliários usam o Sistema de Amortização Constante (SAC), que tem parcelas decrescentes e CET final diferente — confirme qual sistema consta na sua proposta."
+        disclaimerExtra="Esta simulação usa a Tabela Price (parcelas fixas); muitos contratos imobiliários usam o Sistema de Amortização Constante (SAC), que tem parcelas decrescentes e CET final diferente - confirme qual sistema consta na sua proposta."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           Taxas reguladas (SFH) x taxas de mercado (SFI)
@@ -105,7 +105,7 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
         <p>
           O Sistema Financeiro da Habitação (SFH) financia imóveis até um teto
           de valor definido pelo Conselho Monetário Nacional, permite o uso do
-          saldo do FGTS e tem taxas de juros limitadas por regulação — por
+          saldo do FGTS e tem taxas de juros limitadas por regulação - por
           isso costuma ter as menores taxas do mercado. Acima desse teto de
           valor, ou fora das regras do SFH, o financiamento passa a ser feito
           pelo Sistema de Financiamento Imobiliário (SFI), com taxas de
@@ -118,12 +118,12 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
         </h2>
         <p>
           No <strong>prefixado</strong>, a taxa de juros é fixa do início ao
-          fim do contrato — previsível, mas geralmente com a taxa nominal mais
+          fim do contrato - previsível, mas geralmente com a taxa nominal mais
           alta para compensar o banco pelo risco de inflação futura. No{" "}
           <strong>pós-fixado referenciado em TR</strong>, a parcela é corrigida
           pela Taxa Referencial, historicamente próxima de zero nos últimos
           anos. No <strong>pós-fixado referenciado em IPCA</strong>, o saldo
-          devedor é corrigido pela inflação oficial — a parcela tende a subir
+          devedor é corrigido pela inflação oficial - a parcela tende a subir
           com o tempo, mas a taxa de juros contratada costuma ser menor.
         </p>
 
@@ -134,7 +134,7 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
           Esta simulação usa a Tabela Price, com parcelas fixas do início ao
           fim. Mas boa parte dos contratos de financiamento imobiliário no
           Brasil usa o SAC (Sistema de Amortização Constante), em que a
-          amortização é fixa e os juros diminuem a cada parcela — a parcela
+          amortização é fixa e os juros diminuem a cada parcela - a parcela
           começa mais alta e vai caindo ao longo do contrato, e o total pago
           em juros costuma ser menor que no Price. Sempre confirme com o
           banco qual sistema de amortização está na sua proposta antes de
@@ -147,7 +147,7 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
         <ul className="list-disc space-y-2 pl-5">
           <li>
             Verifique se seu imóvel e sua renda se enquadram no teto do SFH
-            antes de assumir que só o SFI está disponível — as taxas
+            antes de assumir que só o SFI está disponível - as taxas
             reguladas costumam compensar bastante.
           </li>
           <li>
@@ -155,7 +155,7 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
             amortizar parcelas, quando elegível.
           </li>
           <li>
-            Compare o CET entre bancos diferentes e entre indexadores — um
+            Compare o CET entre bancos diferentes e entre indexadores - um
             IPCA com taxa nominal menor pode custar mais no total se a
             inflação acumulada for alta ao longo do contrato.
           </li>

@@ -5,7 +5,7 @@ import { SimuladorModalidade } from "@/components/SimuladorModalidade";
 import { MODALIDADES } from "@/lib/modalidades";
 
 export const metadata: Metadata = {
-  title: "Simulador de Crédito Pessoal — taxas reais do Banco Central",
+  title: "Simulador de Crédito Pessoal - taxas reais do Banco Central",
   description:
     "Simule sua parcela de crédito pessoal com taxas médias reportadas ao Banco Central do Brasil. Entenda como funciona, o que é CET e dicas antes de contratar.",
 };
@@ -31,7 +31,7 @@ export default async function CreditoPessoalPage() {
         na conta e pode ser usado para qualquer finalidade. Por não ter uma
         garantia associada (o bem financiado ou o desconto em folha, como no
         consignado), costuma ter as taxas de juros mais altas entre as
-        modalidades de crédito para pessoa física — o banco assume mais
+        modalidades de crédito para pessoa física - o banco assume mais
         risco de inadimplência.
       </p>
 
@@ -44,7 +44,7 @@ export default async function CreditoPessoalPage() {
         resulta em taxas bem menores. Em compensação, só pode ser contratado
         por quem tem vínculo empregatício formal, é servidor público ou
         recebe aposentadoria/pensão do INSS. Quem não se enquadra nesses
-        critérios só tem acesso ao crédito pessoal não consignado — a
+        critérios só tem acesso ao crédito pessoal não consignado - a
         modalidade simulada nesta página.
       </p>
 
@@ -57,7 +57,7 @@ export default async function CreditoPessoalPage() {
         eventualmente cobrados, e é a informação que toda instituição
         financeira é obrigada a apresentar antes da contratação, por
         determinação do Banco Central. As taxas usadas nesta simulação já
-        representam o custo efetivo médio por instituição — mas o CET final
+        representam o custo efetivo médio por instituição - mas o CET final
         da sua proposta pode variar conforme tarifas específicas do
         contrato, por isso vale sempre conferir o CET informado na proposta
         antes de assinar.
@@ -69,12 +69,12 @@ export default async function CreditoPessoalPage() {
       <ul className="list-disc space-y-2 pl-5">
         <li>
           Compare o CET entre instituições diferentes, não só a taxa de
-          juros — duas propostas com a mesma taxa podem ter CET final bem
+          juros - duas propostas com a mesma taxa podem ter CET final bem
           diferente por causa de tarifas.
         </li>
         <li>
           Verifique se existe a opção de quitação antecipada com desconto
-          proporcional de juros — é um direito garantido por lei.
+          proporcional de juros - é um direito garantido por lei.
         </li>
         <li>
           Simule o impacto da parcela no seu orçamento mensal antes de
@@ -83,7 +83,7 @@ export default async function CreditoPessoalPage() {
         <li>
           Se você tem vínculo empregatício, é servidor público ou recebe
           benefício do INSS, verifique primeiro as condições do crédito
-          consignado — as taxas costumam ser significativamente menores.
+          consignado - as taxas costumam ser significativamente menores.
         </li>
       </ul>
     </SimuladorModalidade>

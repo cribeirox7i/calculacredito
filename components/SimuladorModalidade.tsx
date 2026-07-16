@@ -51,7 +51,7 @@ export async function SimuladorModalidade({
       <p className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
         Este site não é uma instituição financeira, não oferece crédito e não
         coleta dados pessoais. Os valores simulados são estimativas baseadas em
-        médias de mercado publicadas pelo Banco Central — não são uma oferta e
+        médias de mercado publicadas pelo Banco Central - não são uma oferta e
         não substituem a proposta formal de uma instituição financeira, que
         deve incluir o Custo Efetivo Total (CET) real da operação.
         {disclaimerExtra ? ` ${disclaimerExtra}` : ""}

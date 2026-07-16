@@ -2,6 +2,8 @@ import { list } from "@vercel/blob";
 import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
 import { enviarLogo, excluirLogo } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLogosPage() {
   if (!blobConfigurado()) {
     return (

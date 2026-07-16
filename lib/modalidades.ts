@@ -57,3 +57,49 @@ export const MODALIDADES_IMOBILIARIO = {
     },
   },
 } as const;
+
+// Modalidades de crédito Pessoa Jurídica — códigos e nomes exatos validados
+// via ParametrosConsulta (segmento "Pessoa Jurídica"), mesmo recurso diário
+// já usado pelas modalidades PF (nenhuma modalidade PJ está no recurso mensal).
+export const MODALIDADES_PJ = {
+  capitalGiro: {
+    curto: {
+      prefixado: {
+        codigo: "210101",
+        nome: "Capital de giro com prazo até 365 dias - Prefixado",
+      },
+      posfixado: {
+        codigo: "210204",
+        nome: "Capital de giro com prazo até 365 dias - Pós-fixado referenciado em juros flutuantes",
+      },
+    },
+    longo: {
+      prefixado: {
+        codigo: "211101",
+        nome: "Capital de giro com prazo superior a 365 dias - Prefixado",
+      },
+      posfixado: {
+        codigo: "211204",
+        nome: "Capital de giro com prazo superior a 365 dias - Pós-fixado referenciado em juros flutuantes",
+      },
+    },
+  },
+  contaGarantida: {
+    prefixado: {
+      codigo: "217101",
+      nome: "Conta garantida - Prefixado",
+    },
+    posfixado: {
+      codigo: "217204",
+      nome: "Conta garantida - Pós-fixado referenciado em juros flutuantes",
+    },
+  },
+  chequeEspecial: {
+    codigo: "216101",
+    nome: "Cheque especial - Prefixado",
+  },
+  descontoDuplicatas: {
+    codigo: "301101",
+    nome: "Desconto de duplicatas - Prefixado",
+  },
+} as const;

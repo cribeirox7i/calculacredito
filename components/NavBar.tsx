@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [
+const LINKS_PF = [
   { href: "/credito-pessoal", label: "Crédito pessoal" },
   { href: "/consignado/inss", label: "Consignado", prefixoAtivo: "/consignado" },
   { href: "/financiamento-veiculo", label: "Financiamento de veículo" },
@@ -13,6 +13,23 @@ const LINKS = [
     prefixoAtivo: "/financiamento-imobiliario",
   },
 ];
+
+const LINKS_PJ = [
+  {
+    href: "/capital-giro/curto/prefixado",
+    label: "Capital de giro",
+    prefixoAtivo: "/capital-giro",
+  },
+  {
+    href: "/conta-garantida/prefixado",
+    label: "Conta garantida",
+    prefixoAtivo: "/conta-garantida",
+  },
+  { href: "/cheque-especial-pj", label: "Cheque especial PJ" },
+  { href: "/desconto-duplicatas", label: "Desconto de duplicatas" },
+];
+
+const PREFIXOS_PJ = ["/capital-giro", "/conta-garantida", "/cheque-especial-pj", "/desconto-duplicatas"];
 
 function Logomarca() {
   return (
@@ -46,19 +63,46 @@ function Logomarca() {
 
 export function NavBar() {
   const pathname = usePathname();
+  const emPj = PREFIXOS_PJ.some((prefixo) => pathname.startsWith(prefixo));
+  const links = emPj ? LINKS_PJ : LINKS_PF;
 
   return (
     <nav className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">
-      <div className="mx-auto flex w-full items-center gap-4 overflow-x-auto px-4 py-3 sm:px-6 lg:w-[70%]">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <Logomarca />
-          <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            CalculaCredito
-          </span>
-        </Link>
+      <div className="mx-auto flex w-full flex-col gap-2 px-4 py-3 sm:px-6 lg:w-[70%]">
+        <div className="flex items-center gap-4 overflow-x-auto">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <Logomarca />
+            <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              CalculaCredito
+            </span>
+          </Link>
 
-        <div className="flex gap-2">
-          {LINKS.map((link) => {
+          <div className="flex shrink-0 gap-1 rounded-full border border-zinc-200 p-1 dark:border-zinc-700">
+            <Link
+              href="/credito-pessoal"
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                !emPj
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              Pessoa Física
+            </Link>
+            <Link
+              href="/capital-giro/curto/prefixado"
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                emPj
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              Pessoa Jurídica
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto">
+          {links.map((link) => {
             const ativo = pathname.startsWith(link.prefixoAtivo ?? link.href);
 
             return (

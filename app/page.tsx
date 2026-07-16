@@ -3,10 +3,10 @@ import Link from "next/link";
 type Operacao = {
   titulo: string;
   descricao: string;
-  href?: string;
+  href: string;
 };
 
-const operacoes: Operacao[] = [
+const operacoesPF: Operacao[] = [
   {
     titulo: "Crédito pessoal",
     descricao: "Empréstimo sem destinação específica, sem garantia ou desconto em folha.",
@@ -29,6 +29,44 @@ const operacoes: Operacao[] = [
   },
 ];
 
+const operacoesPJ: Operacao[] = [
+  {
+    titulo: "Capital de giro",
+    descricao: "Crédito para financiar as operações do dia a dia da empresa.",
+    href: "/capital-giro/curto/prefixado",
+  },
+  {
+    titulo: "Conta garantida",
+    descricao: "Limite de crédito rotativo vinculado à conta corrente da empresa.",
+    href: "/conta-garantida/prefixado",
+  },
+  {
+    titulo: "Cheque especial PJ",
+    descricao: "Limite emergencial acionado quando o saldo da conta fica negativo.",
+    href: "/cheque-especial-pj",
+  },
+  {
+    titulo: "Desconto de duplicatas",
+    descricao: "Antecipação de recebíveis de vendas a prazo.",
+    href: "/desconto-duplicatas",
+  },
+];
+
+function GridOperacoes({ operacoes }: { operacoes: Operacao[] }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {operacoes.map((op) => (
+        <Link key={op.titulo} href={op.href}>
+          <div className="h-full rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-600">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{op.titulo}</h3>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{op.descricao}</p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <main className="mx-auto w-full px-4 py-16 sm:px-6 lg:w-[70%]">
@@ -40,35 +78,29 @@ export default function Home() {
         reportadas por instituições financeiras ao Banco Central do Brasil.
       </p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {operacoes.map((op) => {
-          const conteudo = (
-            <div
-              className={`h-full rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition dark:border-zinc-800 dark:bg-zinc-900 ${
-                op.href ? "hover:border-zinc-400 dark:hover:border-zinc-600" : "opacity-60"
-              }`}
-            >
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                {op.titulo}
-              </h2>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{op.descricao}</p>
-              {!op.href && (
-                <span className="mt-3 inline-block text-xs font-medium uppercase tracking-wide text-zinc-400">
-                  Em breve
-                </span>
-              )}
-            </div>
-          );
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          Para mim
+        </h2>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Crédito para pessoa física.
+        </p>
+        <div className="mt-4">
+          <GridOperacoes operacoes={operacoesPF} />
+        </div>
+      </section>
 
-          return op.href ? (
-            <Link key={op.titulo} href={op.href}>
-              {conteudo}
-            </Link>
-          ) : (
-            <div key={op.titulo}>{conteudo}</div>
-          );
-        })}
-      </div>
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          Para minha empresa
+        </h2>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Crédito para pessoa jurídica.
+        </p>
+        <div className="mt-4">
+          <GridOperacoes operacoes={operacoesPJ} />
+        </div>
+      </section>
     </main>
   );
 }

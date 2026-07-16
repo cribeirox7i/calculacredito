@@ -123,11 +123,14 @@ export async function gerarPdfSimulacao(dados: {
     { label: "Prazo", valor: `${dados.meses} meses` },
     { label: "Taxa de juros", valor: `${dados.taxa.toFixed(2)}% ao mês` },
     { label: "Parcela mensal", valor: formatarMoeda(dados.parcela) },
-    { label: "Total pago ao final", valor: formatarMoeda(dados.totalPago) },
-    { label: "Total de juros", valor: formatarMoeda(dados.totalJuros) },
     ...(dados.iof != null
-      ? [{ label: "IOF estimado (cobrado à parte)", valor: dados.iof === 0 ? "Isento" : formatarMoeda(dados.iof) }]
+      ? [{ label: "IOF estimado", valor: dados.iof === 0 ? "Isento" : formatarMoeda(dados.iof) }]
       : []),
+    { label: "Total de juros", valor: formatarMoeda(dados.totalJuros) },
+    {
+      label: dados.iof != null && dados.iof > 0 ? "Total pago ao final (já com IOF)" : "Total pago ao final",
+      valor: formatarMoeda(dados.totalPago),
+    },
   ];
   for (const campo of camposResumo) {
     doc.text(campo.label, margemEsquerda, y);

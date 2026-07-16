@@ -126,6 +126,11 @@ export function SimuladorInterativo({
     return calcularIof(valor, meses, tipoIof);
   }, [valor, meses, tipoIof]);
 
+  // "Total pago" reflete o custo total de fato - inclui o IOF quando
+  // aplicável, já que é um custo real da operação (só "Total de juros"
+  // fica isolado, por ser um imposto, não juro).
+  const totalPagoComIof = resultado ? resultado.totalPago + (iof ?? 0) : null;
+
   const buscaNormalizada = removerAcentos(busca.trim().toLowerCase());
 
   const linhas = useMemo<LinhaTabela[]>(() => {
@@ -171,7 +176,7 @@ export function SimuladorInterativo({
       meses,
       taxa: taxaEfetiva,
       parcela: resultado.parcela,
-      totalPago: resultado.totalPago,
+      totalPago: totalPagoComIof ?? resultado.totalPago,
       totalJuros: resultado.totalJuros,
       iof,
       linhas: linhasExibidas.map((l) => ({
@@ -306,18 +311,6 @@ export function SimuladorInterativo({
                 {formatarMoeda(resultado.parcela)}
               </p>
             </div>
-            <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total pago ao final</p>
-              <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                {formatarMoeda(resultado.totalPago)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total de juros</p>
-              <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-                {formatarMoeda(resultado.totalJuros)}
-              </p>
-            </div>
             {iof !== null && (
               <div>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">IOF estimado</p>
@@ -326,6 +319,18 @@ export function SimuladorInterativo({
                 </p>
               </div>
             )}
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total de juros</p>
+              <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                {formatarMoeda(resultado.totalJuros)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total pago ao final</p>
+              <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                {formatarMoeda(totalPagoComIof ?? resultado.totalPago)}
+              </p>
+            </div>
           </div>
         )}
 
@@ -333,7 +338,7 @@ export function SimuladorInterativo({
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
             {iof === 0
               ? "Financiamento imobiliário residencial contratado por pessoa física é isento de IOF (Sistema Financeiro da Habitação/Sistema de Financiamento Imobiliário)."
-              : "IOF estimado (0,38% fixo + taxa diária sobre o valor, limitada a 365 dias) - cobrado à parte, não somado à parcela nem ao total pago acima. As alíquotas de IOF mudam por decreto do governo; confirme o valor exato na proposta da instituição."}
+              : "IOF estimado (0,38% fixo + taxa diária sobre o valor, limitada a 365 dias), já somado ao total pago acima (não à parcela mensal, que reflete só o financiamento). As alíquotas de IOF mudam por decreto do governo; confirme o valor exato na proposta da instituição."}
           </p>
         )}
 

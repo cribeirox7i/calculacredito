@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
 import { obterLogosPorCnpj8 } from "@/lib/logos";
+import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { SimuladorInterativo } from "@/components/SimuladorInterativo";
 
 export async function SimuladorModalidade({
@@ -26,7 +27,10 @@ export async function SimuladorModalidade({
   disclaimerExtra?: string;
   children: ReactNode;
 }) {
-  const logosPorCnpj8 = await obterLogosPorCnpj8();
+  const [logosPorCnpj8, sitesPorCnpj8] = await Promise.all([
+    obterLogosPorCnpj8(),
+    obterSitesPorCnpj8(),
+  ]);
 
   return (
     <main className="mx-auto w-full px-4 py-12 sm:px-6 lg:w-[70%]">
@@ -45,6 +49,7 @@ export async function SimuladorModalidade({
           valorInicial={valorInicial}
           mesesInicial={mesesInicial}
           logosPorCnpj8={logosPorCnpj8}
+          sitesPorCnpj8={sitesPorCnpj8}
         />
       </div>
 

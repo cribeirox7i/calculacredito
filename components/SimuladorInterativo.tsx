@@ -58,6 +58,7 @@ export function SimuladorInterativo({
   valorInicial = 5000,
   mesesInicial = 24,
   logosPorCnpj8 = {},
+  sitesPorCnpj8 = {},
 }: {
   taxas: TaxaInstituicao[];
   taxaMediaAoMes: number;
@@ -65,6 +66,7 @@ export function SimuladorInterativo({
   valorInicial?: number;
   mesesInicial?: number;
   logosPorCnpj8?: Record<string, string>;
+  sitesPorCnpj8?: Record<string, string>;
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
@@ -238,7 +240,21 @@ export function SimuladorInterativo({
                     <div className="flex items-center gap-2">
                       <LogoInstituicao nome={l.instituicao} url={logosPorCnpj8[l.cnpj8]} />
                       <div>
-                        <div>{l.instituicao}</div>
+                        <div>
+                          {sitesPorCnpj8[l.cnpj8] ? (
+                            <a
+                              href={sitesPorCnpj8[l.cnpj8]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title={`Visitar ${sitesPorCnpj8[l.cnpj8]}`}
+                              className="hover:underline"
+                            >
+                              {l.instituicao}
+                            </a>
+                          ) : (
+                            l.instituicao
+                          )}
+                        </div>
                         <div className="text-[10px] text-zinc-400 dark:text-zinc-500">{l.cnpj8}</div>
                       </div>
                     </div>

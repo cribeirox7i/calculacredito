@@ -3,11 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { criarSessaoAdmin } from "@/lib/admin-auth";
+import { verificarSenhaAdmin } from "@/lib/admin-senha";
 
 export async function login(formData: FormData) {
   const senha = formData.get("senha");
 
-  if (typeof senha !== "string" || senha !== process.env.ADMIN_PASSWORD) {
+  if (typeof senha !== "string" || !(await verificarSenhaAdmin(senha))) {
     redirect("/admin/login?erro=1");
   }
 
@@ -21,5 +22,5 @@ export async function login(formData: FormData) {
     maxAge: 30 * 24 * 60 * 60,
   });
 
-  redirect("/admin/logos");
+  redirect("/admin");
 }

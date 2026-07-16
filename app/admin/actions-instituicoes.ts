@@ -2,6 +2,7 @@
 
 import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
+import { parseCsvSites } from "@/lib/csv-sites";
 import { caminhoBlob } from "@/lib/logos";
 import { removerSite, salvarSite } from "@/lib/sites";
 
@@ -37,18 +38,44 @@ export async function salvarInstituicao(formData: FormData) {
     await salvarSite(cnpj8.trim(), normalizarUrl(site as string));
   }
 
-  revalidatePath("/admin/logos");
+  revalidatePath("/admin");
   revalidatePath("/", "layout");
 }
 
 export async function excluirLogo(url: string) {
   await del(url);
-  revalidatePath("/admin/logos");
+  revalidatePath("/admin");
   revalidatePath("/", "layout");
 }
 
 export async function excluirSite(cnpj8: string) {
   await removerSite(cnpj8);
-  revalidatePath("/admin/logos");
+  revalidatePath("/admin");
   revalidatePath("/", "layout");
+}
+
+// Faz upsert linha a linha (não apaga cnpj8 ausentes do CSV) - uma
+// reimportação parcial não derruba instituições já cadastradas por fora.
+export async function importarSitesCsv(formData: FormData) {
+  const arquivo = formData.get("arquivo");
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    throw new Error("Selecione um arquivo CSV.");
+  }
+
+  const texto = await arquivo.text();
+  const { validas, erros } = parseCsvSites(texto);
+
+  for (const { cnpj8, site } of validas) {
+    await salvarSite(cnpj8, site);
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+
+  if (erros.length > 0) {
+    throw new Error(
+      `Importados ${validas.length} site(s) com sucesso. ${erros.length} linha(s) com erro, não importadas:\n` +
+        erros.map((e) => `Linha ${e.linha}: ${e.motivo}`).join("\n")
+    );
+  }
 }

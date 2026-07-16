@@ -50,6 +50,11 @@ const operacoesPJ: Operacao[] = [
     descricao: "Antecipação de recebíveis de vendas a prazo.",
     href: "/desconto-duplicatas",
   },
+  {
+    titulo: "Maquininha de cartão",
+    descricao: "Compare as taxas de débito, crédito e parcelado entre as principais adquirentes.",
+    href: "/maquininha-de-cartao",
+  },
 ];
 
 function GridOperacoes({ operacoes }: { operacoes: Operacao[] }) {

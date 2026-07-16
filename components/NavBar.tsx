@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const LINKS_PF = [
   { href: "/credito-pessoal", label: "Crédito pessoal" },
@@ -27,9 +28,16 @@ const LINKS_PJ = [
   },
   { href: "/cheque-especial-pj", label: "Cheque especial PJ" },
   { href: "/desconto-duplicatas", label: "Desconto de duplicatas" },
+  { href: "/maquininha-de-cartao", label: "Maquininha de cartão" },
 ];
 
-const PREFIXOS_PJ = ["/capital-giro", "/conta-garantida", "/cheque-especial-pj", "/desconto-duplicatas"];
+const PREFIXOS_PJ = [
+  "/capital-giro",
+  "/conta-garantida",
+  "/cheque-especial-pj",
+  "/desconto-duplicatas",
+  "/maquininha-de-cartao",
+];
 
 function Logomarca() {
   return (
@@ -118,6 +126,8 @@ export function NavBar() {
             );
           })}
         </div>
+
+        <ThemeToggle />
       </div>
     </nav>
   );

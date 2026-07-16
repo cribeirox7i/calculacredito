@@ -1,36 +1,19 @@
-import { list } from "@vercel/blob";
-import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
-import { obterSitesPorCnpj8 } from "@/lib/sites";
-import { excluirLogo, excluirSite, salvarInstituicao } from "./actions";
+import { excluirLogo, excluirSite, importarSitesCsv, salvarInstituicao } from "./actions-instituicoes";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminLogosPage() {
-  if (!blobConfigurado()) {
-    return (
-      <main className="mx-auto w-full px-4 py-12 sm:px-6 lg:w-[70%]">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-          Instituições - logos e sites
-        </h1>
-        <p className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          O Blob Store ainda não foi ativado neste projeto na Vercel. Ative em
-          Storage → Create Database → Blob e faça um novo deploy antes de
-          usar esta página.
-        </p>
-      </main>
-    );
-  }
-
-  const [{ blobs }, sites] = await Promise.all([list({ prefix: "logos/" }), obterSitesPorCnpj8()]);
-
-  const logosPorCnpj8 = new Map(blobs.map((b) => [codigoDoCaminho(b.pathname), b.url]));
+export function SecaoInstituicoes({
+  logosPorCnpj8,
+  sites,
+}: {
+  logosPorCnpj8: Map<string, string>;
+  sites: Record<string, string>;
+}) {
   const cnpj8s = [...new Set([...logosPorCnpj8.keys(), ...Object.keys(sites)])].sort();
 
   return (
-    <main className="mx-auto w-full px-4 py-12 sm:px-6 lg:w-[70%]">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+    <div>
+      <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
         Instituições - logos e sites
-      </h1>
+      </h2>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
         Informe o código CNPJ8 (Banco Central) da instituição - ele aparece
         em texto pequeno abaixo do nome de cada instituição nas tabelas do
@@ -38,6 +21,30 @@ export default async function AdminLogosPage() {
         instituição certa, já que nomes têm variações entre modalidades.
         Preencha o logo e/ou o site - não precisa dos dois de uma vez.
       </p>
+
+      <div className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+        <a
+          href="/admin/exportar-sites"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          Baixar modelo CSV (sites)
+        </a>
+        <form action={importarSitesCsv} className="flex flex-wrap items-center gap-3">
+          <input
+            type="file"
+            name="arquivo"
+            accept=".csv,text/csv"
+            required
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          >
+            Importar CSV
+          </button>
+        </form>
+      </div>
 
       <form
         action={salvarInstituicao}
@@ -140,6 +147,6 @@ export default async function AdminLogosPage() {
           </tbody>
         </table>
       </div>
-    </main>
+    </div>
   );
 }

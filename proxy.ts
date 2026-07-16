@@ -14,5 +14,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/logos/:path*"],
+  matcher: ["/admin", "/admin/exportar-sites", "/admin/exportar-maquininhas"],
 };

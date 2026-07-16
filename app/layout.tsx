@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   },
   description:
     "Simule crédito pessoal, consignado, financiamento de veículo e imobiliário com taxas médias reportadas ao Banco Central do Brasil.",
+  verification: {
+    google: "BcDYRCaO04g65qnDPPrsVfHaG3Xkqks1uFhxYMumnwc",
+  },
 };
 
 export default function RootLayout({

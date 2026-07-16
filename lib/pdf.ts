@@ -70,6 +70,7 @@ export async function gerarPdfSimulacao(dados: {
   parcela: number;
   totalPago: number;
   totalJuros: number;
+  iof?: number | null;
   linhas: LinhaPdf[];
 }): Promise<Blob> {
   const [{ jsPDF }, logoDataUrl] = await Promise.all([import("jspdf"), obterLogoDataUrl()]);
@@ -124,6 +125,9 @@ export async function gerarPdfSimulacao(dados: {
     { label: "Parcela mensal", valor: formatarMoeda(dados.parcela) },
     { label: "Total pago ao final", valor: formatarMoeda(dados.totalPago) },
     { label: "Total de juros", valor: formatarMoeda(dados.totalJuros) },
+    ...(dados.iof != null
+      ? [{ label: "IOF estimado (cobrado à parte)", valor: dados.iof === 0 ? "Isento" : formatarMoeda(dados.iof) }]
+      : []),
   ];
   for (const campo of camposResumo) {
     doc.text(campo.label, margemEsquerda, y);

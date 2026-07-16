@@ -102,6 +102,7 @@ export default async function ConsignadoPage({ params }: Params) {
         mediaAoAno={dados.mediaAoAno}
         valorInicial={5000}
         mesesInicial={48}
+        tipoIof="pessoaFisica"
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           Quem pode contratar nesta modalidade

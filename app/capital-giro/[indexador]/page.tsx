@@ -72,6 +72,7 @@ export default async function CapitalGiroPage({ params }: Params) {
         mediaAoAno={dadosCurto.mediaAoAno}
         valorInicial={50000}
         mesesInicial={12}
+        tipoIof="pessoaJuridica"
         gruposPorPrazo={{
           limiteMeses: 12,
           labelCurto: "prazo até 365 dias",

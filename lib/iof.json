@@ -1,0 +1,14 @@
+{
+  "fonte": "Decreto 6.306/2007 (Regulamento do IOF). Pesquisado via web em 16/07/2026 - houve divergência entre fontes por causa das mudanças de 2025 (Decretos 12.466/2025 e 12.499/2025) e da decisão do STF de 11/06/2025 que restabeleceu parte das regras. Os valores abaixo refletem a estrutura que apareceu de forma mais consistente nas fontes consultadas (a mesma vigente antes da controvérsia de 2025) - vale reconfirmar periodicamente.",
+  "atualizadoEm": "2026-07-16",
+  "pessoaFisica": {
+    "taxaDiariaPercentual": 0.0082,
+    "taxaFixaPercentual": 0.38,
+    "tetoDias": 365
+  },
+  "pessoaJuridica": {
+    "taxaDiariaPercentual": 0.0041,
+    "taxaFixaPercentual": 0.38,
+    "tetoDias": 365
+  }
+}

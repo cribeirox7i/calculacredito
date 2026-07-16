@@ -23,6 +23,7 @@ export default async function FinanciamentoVeiculoPage() {
       mediaAoAno={dados.mediaAoAno}
       valorInicial={40000}
       mesesInicial={48}
+      tipoIof="pessoaFisica"
     >
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
         Como funciona o financiamento de veículo

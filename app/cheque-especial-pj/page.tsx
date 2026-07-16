@@ -23,6 +23,7 @@ export default async function ChequeEspecialPjPage() {
       mediaAoAno={dados.mediaAoAno}
       valorInicial={10000}
       mesesInicial={3}
+      tipoIof="pessoaJuridica"
       disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
     >
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

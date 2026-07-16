@@ -97,6 +97,7 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
         mediaAoAno={dados.mediaAoAno}
         valorInicial={300000}
         mesesInicial={360}
+        tipoIof="isento"
         disclaimerExtra="Esta simulação usa a Tabela Price (parcelas fixas); muitos contratos imobiliários usam o Sistema de Amortização Constante (SAC), que tem parcelas decrescentes e CET final diferente - confirme qual sistema consta na sua proposta."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
@@ -139,6 +140,18 @@ export default async function FinanciamentoImobiliarioPage({ params }: Params) {
           em juros costuma ser menor que no Price. Sempre confirme com o
           banco qual sistema de amortização está na sua proposta antes de
           comparar valores.
+        </p>
+
+        <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+          Sobre o IOF
+        </h2>
+        <p>
+          Diferente da maioria das operações de crédito, o financiamento
+          imobiliário residencial contratado por pessoa física pelo SFH ou
+          SFI é <strong>isento de IOF</strong> - por isso a simulação acima
+          não mostra esse imposto. A isenção não vale se o financiamento for
+          de um imóvel comercial ou contratado por pessoa jurídica: nesses
+          casos, o IOF é cobrado normalmente sobre a operação.
         </p>
 
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

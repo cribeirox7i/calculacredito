@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { TaxaInstituicao } from "@/lib/bcb";
+import type { TipoIof } from "@/lib/iof";
 import { obterLogosPorCnpj8 } from "@/lib/logos";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { SimuladorInterativo } from "@/components/SimuladorInterativo";
@@ -18,6 +19,7 @@ export async function SimuladorModalidade({
   disclaimerExtra,
   gruposPorPrazo,
   indexadorPosFixado,
+  tipoIof,
   children,
 }: {
   titulo: string;
@@ -31,6 +33,7 @@ export async function SimuladorModalidade({
   disclaimerExtra?: string;
   gruposPorPrazo?: { limiteMeses: number; curto: GrupoTaxas; longo: GrupoTaxas; labelCurto: string; labelLongo: string };
   indexadorPosFixado?: { nome: string; taxaAnual: number };
+  tipoIof?: TipoIof;
   children: ReactNode;
 }) {
   const [logosPorCnpj8, sitesPorCnpj8] = await Promise.all([
@@ -60,6 +63,7 @@ export async function SimuladorModalidade({
           sitesPorCnpj8={sitesPorCnpj8}
           gruposPorPrazo={gruposPorPrazo}
           indexadorPosFixado={indexadorPosFixado}
+          tipoIof={tipoIof}
         />
       </div>
 

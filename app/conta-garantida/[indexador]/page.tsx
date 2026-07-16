@@ -73,6 +73,7 @@ export default async function ContaGarantidaPage({ params }: Params) {
         valorInicial={20000}
         mesesInicial={6}
         indexadorPosFixado={cdi !== null ? { nome: "CDI", taxaAnual: cdi } : undefined}
+        tipoIof="pessoaJuridica"
         disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

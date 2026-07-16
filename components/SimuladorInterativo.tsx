@@ -5,6 +5,7 @@ import type { TaxaInstituicao } from "@/lib/bcb";
 import { simularPrice, taxaAnualParaMensal, type SimulacaoPrice } from "@/lib/amortizacao";
 import { corAvatar, iniciaisInstituicao, removerAcentos } from "@/lib/logos";
 import { gerarPdfSimulacao } from "@/lib/pdf";
+import { calcularIof, type TipoIof } from "@/lib/iof";
 import { CampoMoeda } from "@/components/CampoMoeda";
 
 function formatarMoeda(valor: number): string {
@@ -71,6 +72,7 @@ export function SimuladorInterativo({
   sitesPorCnpj8 = {},
   gruposPorPrazo,
   indexadorPosFixado,
+  tipoIof,
 }: {
   titulo: string;
   periodoLabel: string;
@@ -89,6 +91,9 @@ export function SimuladorInterativo({
   // por um percentual do indexador (ex.: "80% do CDI") - a taxa efetiva vem
   // do indexador anualizado × esse percentual, convertida pra mensal.
   indexadorPosFixado?: { nome: string; taxaAnual: number };
+  // Quando informado, mostra o IOF estimado como linha separada (não altera
+  // parcela/total pago, que refletem só o financiamento em si).
+  tipoIof?: TipoIof;
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
@@ -115,6 +120,11 @@ export function SimuladorInterativo({
     if (valor <= 0 || meses <= 0 || taxaEfetiva <= 0) return null;
     return simularPrice(valor, taxaEfetiva, meses);
   }, [valor, meses, taxaEfetiva]);
+
+  const iof = useMemo(() => {
+    if (!tipoIof) return null;
+    return calcularIof(valor, meses, tipoIof);
+  }, [valor, meses, tipoIof]);
 
   const buscaNormalizada = removerAcentos(busca.trim().toLowerCase());
 
@@ -163,6 +173,7 @@ export function SimuladorInterativo({
       parcela: resultado.parcela,
       totalPago: resultado.totalPago,
       totalJuros: resultado.totalJuros,
+      iof,
       linhas: linhasExibidas.map((l) => ({
         posicao: l.posicao,
         instituicao: l.instituicao,
@@ -284,7 +295,11 @@ export function SimuladorInterativo({
         )}
 
         {resultado && (
-          <div className="mt-6 grid gap-4 border-t border-zinc-200 pt-6 sm:grid-cols-3 dark:border-zinc-800">
+          <div
+            className={`mt-6 grid gap-4 border-t border-zinc-200 pt-6 sm:grid-cols-2 dark:border-zinc-800 ${
+              iof !== null ? "lg:grid-cols-4" : "lg:grid-cols-3"
+            }`}
+          >
             <div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Parcela mensal</p>
               <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
@@ -303,7 +318,23 @@ export function SimuladorInterativo({
                 {formatarMoeda(resultado.totalJuros)}
               </p>
             </div>
+            {iof !== null && (
+              <div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">IOF estimado</p>
+                <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                  {iof === 0 ? "Isento" : formatarMoeda(iof)}
+                </p>
+              </div>
+            )}
           </div>
+        )}
+
+        {iof !== null && (
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+            {iof === 0
+              ? "Financiamento imobiliário residencial contratado por pessoa física é isento de IOF (Sistema Financeiro da Habitação/Sistema de Financiamento Imobiliário)."
+              : "IOF estimado (0,38% fixo + taxa diária sobre o valor, limitada a 365 dias) - cobrado à parte, não somado à parcela nem ao total pago acima. As alíquotas de IOF mudam por decreto do governo; confirme o valor exato na proposta da instituição."}
+          </p>
         )}
 
         {resultado && (

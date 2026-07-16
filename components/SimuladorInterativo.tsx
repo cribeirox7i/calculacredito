@@ -51,6 +51,12 @@ function valorOrdenavel(linha: LinhaTabela, coluna: Coluna): string | number {
   }
 }
 
+type GrupoTaxas = {
+  taxas: TaxaInstituicao[];
+  taxaMediaAoMes: number;
+  mediaAoAno: number;
+};
+
 export function SimuladorInterativo({
   taxas,
   taxaMediaAoMes,
@@ -59,6 +65,7 @@ export function SimuladorInterativo({
   mesesInicial = 24,
   logosPorCnpj8 = {},
   sitesPorCnpj8 = {},
+  gruposPorPrazo,
 }: {
   taxas: TaxaInstituicao[];
   taxaMediaAoMes: number;
@@ -67,6 +74,10 @@ export function SimuladorInterativo({
   mesesInicial?: number;
   logosPorCnpj8?: Record<string, string>;
   sitesPorCnpj8?: Record<string, string>;
+  // Quando informado, a tabela troca automaticamente entre "curto" e "longo"
+  // conforme o prazo (meses) preenchido na calculadora, em vez de usar um
+  // seletor de rota separado (ex.: capital de giro até/acima de 365 dias).
+  gruposPorPrazo?: { limiteMeses: number; curto: GrupoTaxas; longo: GrupoTaxas; labelCurto: string; labelLongo: string };
 }) {
   const [valor, setValor] = useState(valorInicial);
   const [meses, setMeses] = useState(mesesInicial);
@@ -76,6 +87,12 @@ export function SimuladorInterativo({
   const [ordenarPor, setOrdenarPor] = useState<Coluna>("posicao");
   const [direcao, setDirecao] = useState<"asc" | "desc">("asc");
 
+  const grupoAtivo: GrupoTaxas = gruposPorPrazo
+    ? meses <= gruposPorPrazo.limiteMeses
+      ? gruposPorPrazo.curto
+      : gruposPorPrazo.longo
+    : { taxas, taxaMediaAoMes, mediaAoAno };
+
   const resultado = useMemo(() => {
     if (valor <= 0 || meses <= 0 || taxa <= 0) return null;
     return simularPrice(valor, taxa, meses);
@@ -84,7 +101,7 @@ export function SimuladorInterativo({
   const buscaNormalizada = removerAcentos(busca.trim().toLowerCase());
 
   const linhas = useMemo<LinhaTabela[]>(() => {
-    const comSimulacao: LinhaTabela[] = taxas.map((t) => ({
+    const comSimulacao: LinhaTabela[] = grupoAtivo.taxas.map((t) => ({
       ...t,
       simulacao: valor > 0 && meses > 0 ? simularPrice(valor, t.taxaAoMes, meses) : null,
     }));
@@ -102,7 +119,7 @@ export function SimuladorInterativo({
       }
       return sinal * (va - vb);
     });
-  }, [taxas, valor, meses, buscaNormalizada, ordenarPor, direcao]);
+  }, [grupoAtivo.taxas, valor, meses, buscaNormalizada, ordenarPor, direcao]);
 
   const buscando = buscaNormalizada.length > 0;
   const linhasExibidas = buscando || mostrarTodos ? linhas : linhas.slice(0, LIMITE_PADRAO);
@@ -191,9 +208,19 @@ export function SimuladorInterativo({
           Taxas médias por instituição
         </h2>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Média geral do mercado no período: {taxaMediaAoMes.toFixed(2)}% ao mês (
-          {mediaAoAno.toFixed(2)}% ao ano). Valores de parcela e total abaixo
+          Média geral do mercado no período: {grupoAtivo.taxaMediaAoMes.toFixed(2)}% ao mês (
+          {grupoAtivo.mediaAoAno.toFixed(2)}% ao ano). Valores de parcela e total abaixo
           usam o valor e o prazo preenchidos acima.
+          {gruposPorPrazo && (
+            <>
+              {" "}
+              Mostrando taxas de{" "}
+              <strong>
+                {meses <= gruposPorPrazo.limiteMeses ? gruposPorPrazo.labelCurto : gruposPorPrazo.labelLongo}
+              </strong>
+              .
+            </>
+          )}
         </p>
 
         <input

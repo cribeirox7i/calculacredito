@@ -4,6 +4,8 @@ import { obterLogosPorCnpj8 } from "@/lib/logos";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { SimuladorInterativo } from "@/components/SimuladorInterativo";
 
+type GrupoTaxas = { taxas: TaxaInstituicao[]; taxaMediaAoMes: number; mediaAoAno: number };
+
 export async function SimuladorModalidade({
   titulo,
   resumo,
@@ -14,6 +16,7 @@ export async function SimuladorModalidade({
   valorInicial,
   mesesInicial,
   disclaimerExtra,
+  gruposPorPrazo,
   children,
 }: {
   titulo: string;
@@ -25,6 +28,7 @@ export async function SimuladorModalidade({
   valorInicial?: number;
   mesesInicial?: number;
   disclaimerExtra?: string;
+  gruposPorPrazo?: { limiteMeses: number; curto: GrupoTaxas; longo: GrupoTaxas; labelCurto: string; labelLongo: string };
   children: ReactNode;
 }) {
   const [logosPorCnpj8, sitesPorCnpj8] = await Promise.all([
@@ -50,6 +54,7 @@ export async function SimuladorModalidade({
           mesesInicial={mesesInicial}
           logosPorCnpj8={logosPorCnpj8}
           sitesPorCnpj8={sitesPorCnpj8}
+          gruposPorPrazo={gruposPorPrazo}
         />
       </div>
 

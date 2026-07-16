@@ -6,82 +6,54 @@ import { formatarData } from "@/lib/formato";
 import { SimuladorModalidade } from "@/components/SimuladorModalidade";
 import { MODALIDADES_PJ } from "@/lib/modalidades";
 
-type Prazo = "curto" | "longo";
 type Indexador = "prefixado" | "posfixado";
-
-function ehPrazoValido(valor: string): valor is Prazo {
-  return valor === "curto" || valor === "longo";
-}
 
 function ehIndexadorValido(valor: string): valor is Indexador {
   return valor === "prefixado" || valor === "posfixado";
 }
-
-const LABEL_PRAZO: Record<Prazo, string> = {
-  curto: "Até 365 dias",
-  longo: "Superior a 365 dias",
-};
 
 const LABEL_INDEXADOR: Record<Indexador, string> = {
   prefixado: "Prefixado",
   posfixado: "Pós-fixado (juros flutuantes)",
 };
 
-const VALOR_INICIAL: Record<Prazo, number> = { curto: 30000, longo: 100000 };
-const MESES_INICIAL: Record<Prazo, number> = { curto: 12, longo: 36 };
-
 export function generateStaticParams() {
-  const prazos: Prazo[] = ["curto", "longo"];
-  const indexadores: Indexador[] = ["prefixado", "posfixado"];
-  return prazos.flatMap((prazo) => indexadores.map((indexador) => ({ prazo, indexador })));
+  return (["prefixado", "posfixado"] as Indexador[]).map((indexador) => ({ indexador }));
 }
 
-type Params = { params: Promise<{ prazo: string; indexador: string }> };
+type Params = { params: Promise<{ indexador: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { prazo, indexador } = await params;
-  if (!ehPrazoValido(prazo) || !ehIndexadorValido(indexador)) return {};
+  const { indexador } = await params;
+  if (!ehIndexadorValido(indexador)) return {};
   return {
-    title: `Simulador de Capital de Giro - ${LABEL_PRAZO[prazo]}, ${LABEL_INDEXADOR[indexador]}`,
+    title: `Simulador de Capital de Giro - ${LABEL_INDEXADOR[indexador]}`,
     description:
       "Simule capital de giro para sua empresa com taxas médias reportadas ao Banco Central do Brasil.",
   };
 }
 
 export default async function CapitalGiroPage({ params }: Params) {
-  const { prazo, indexador } = await params;
-  if (!ehPrazoValido(prazo) || !ehIndexadorValido(indexador)) notFound();
+  const { indexador } = await params;
+  if (!ehIndexadorValido(indexador)) notFound();
 
-  const modalidade = MODALIDADES_PJ.capitalGiro[prazo][indexador].nome;
-  const dados = await fetchTaxasDiaria(modalidade);
+  const [dadosCurto, dadosLongo] = await Promise.all([
+    fetchTaxasDiaria(MODALIDADES_PJ.capitalGiro.curto[indexador].nome),
+    fetchTaxasDiaria(MODALIDADES_PJ.capitalGiro.longo[indexador].nome),
+  ]);
 
   return (
     <>
-      <div className="mx-auto w-full space-y-2 px-4 pt-12 sm:px-6 lg:w-[70%]">
-        <div className="flex flex-wrap gap-2">
-          {(["curto", "longo"] as Prazo[]).map((chave) => (
-            <Link
-              key={chave}
-              href={`/capital-giro/${chave}/${indexador}`}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                chave === prazo
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-              }`}
-            >
-              {LABEL_PRAZO[chave]}
-            </Link>
-          ))}
-        </div>
+      <div className="mx-auto w-full px-4 pt-12 sm:px-6 lg:w-[70%]">
         <div className="flex flex-wrap gap-2">
           {(["prefixado", "posfixado"] as Indexador[]).map((chave) => (
             <Link
               key={chave}
-              href={`/capital-giro/${prazo}/${chave}`}
-              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              href={`/capital-giro/${chave}`}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 chave === indexador
-                  ? "border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100"
-                  : "border-zinc-200 text-zinc-500 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-400"
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
               }`}
             >
               {LABEL_INDEXADOR[chave]}
@@ -91,15 +63,30 @@ export default async function CapitalGiroPage({ params }: Params) {
       </div>
 
       <SimuladorModalidade
-        titulo={`Simulador de capital de giro - ${LABEL_PRAZO[prazo]}`}
+        titulo="Simulador de capital de giro"
         resumo="Simule a parcela do capital de giro da sua empresa usando taxas de mercado reportadas ao Banco Central do Brasil."
-        periodoLabel={`Taxas referentes ao período de ${formatarData(dados.inicioPeriodo)} a ${formatarData(dados.fimPeriodo)}.`}
-        taxas={dados.taxas}
-        mediaAoMes={dados.mediaAoMes}
-        mediaAoAno={dados.mediaAoAno}
-        valorInicial={VALOR_INICIAL[prazo]}
-        mesesInicial={MESES_INICIAL[prazo]}
-        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física."
+        periodoLabel={`Taxas referentes ao período de ${formatarData(dadosCurto.inicioPeriodo)} a ${formatarData(dadosCurto.fimPeriodo)}.`}
+        taxas={dadosCurto.taxas}
+        mediaAoMes={dadosCurto.mediaAoMes}
+        mediaAoAno={dadosCurto.mediaAoAno}
+        valorInicial={50000}
+        mesesInicial={12}
+        gruposPorPrazo={{
+          limiteMeses: 12,
+          labelCurto: "prazo até 365 dias",
+          labelLongo: "prazo superior a 365 dias",
+          curto: {
+            taxas: dadosCurto.taxas,
+            taxaMediaAoMes: dadosCurto.mediaAoMes,
+            mediaAoAno: dadosCurto.mediaAoAno,
+          },
+          longo: {
+            taxas: dadosLongo.taxas,
+            taxaMediaAoMes: dadosLongo.mediaAoMes,
+            mediaAoAno: dadosLongo.mediaAoAno,
+          },
+        }}
+        disclaimerExtra="Linha de crédito voltada a pessoas jurídicas - não confundir com as modalidades de crédito para pessoa física. A tabela abaixo troca automaticamente entre as taxas de até 365 dias e acima de 365 dias conforme o prazo (meses) preenchido na calculadora."
       >
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           O que é capital de giro
@@ -120,7 +107,9 @@ export default async function CapitalGiroPage({ params }: Params) {
           menores e é indicado para necessidades pontuais e sazonais. O de
           longo prazo (acima de 365 dias) financia necessidades mais
           estruturais de caixa, com parcelas menores mas custo total maior
-          por causa do prazo estendido.
+          por causa do prazo estendido. A tabela abaixo já mostra
+          automaticamente as taxas certas para o prazo que você preencher na
+          calculadora.
         </p>
 
         <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">

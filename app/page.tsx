@@ -33,7 +33,7 @@ const operacoesPJ: Operacao[] = [
   {
     titulo: "Capital de giro",
     descricao: "Crédito para financiar as operações do dia a dia da empresa.",
-    href: "/capital-giro/curto/prefixado",
+    href: "/capital-giro/prefixado",
   },
   {
     titulo: "Conta garantida",

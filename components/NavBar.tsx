@@ -16,7 +16,7 @@ const LINKS_PF = [
 
 const LINKS_PJ = [
   {
-    href: "/capital-giro/curto/prefixado",
+    href: "/capital-giro/prefixado",
     label: "Capital de giro",
     prefixoAtivo: "/capital-giro",
   },
@@ -88,7 +88,7 @@ export function NavBar() {
             Pessoas
           </Link>
           <Link
-            href="/capital-giro/curto/prefixado"
+            href="/capital-giro/prefixado"
             className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
               emPj
                 ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"

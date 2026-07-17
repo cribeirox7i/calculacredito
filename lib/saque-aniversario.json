@@ -1,0 +1,13 @@
+{
+  "fonte": "Lei 8.036/1990, art. 20-B, §1º, incluído pela Lei 13.932/2019 - tabela de alíquotas do saque-aniversário do FGTS, conforme divulgada pela Caixa Econômica Federal. Pesquisado via web em 17/07/2026.",
+  "atualizadoEm": "2026-07-17",
+  "faixas": [
+    { "ate": 500, "aliquota": 50, "parcelaAdicional": 0 },
+    { "ate": 1000, "aliquota": 40, "parcelaAdicional": 50 },
+    { "ate": 5000, "aliquota": 30, "parcelaAdicional": 150 },
+    { "ate": 10000, "aliquota": 20, "parcelaAdicional": 650 },
+    { "ate": 15000, "aliquota": 15, "parcelaAdicional": 1150 },
+    { "ate": 20000, "aliquota": 10, "parcelaAdicional": 1900 },
+    { "ate": null, "aliquota": 5, "parcelaAdicional": 2900 }
+  ]
+}

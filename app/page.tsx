@@ -27,6 +27,11 @@ const operacoesPF: Operacao[] = [
     descricao: "Compra de imóvel com taxas de mercado ou reguladas (SFH/SFI).",
     href: "/financiamento-imobiliario/regulada/tr",
   },
+  {
+    titulo: "Saque-aniversário FGTS",
+    descricao: "Calcule quanto você pode sacar por ano pela tabela oficial de alíquotas.",
+    href: "/saque-aniversario",
+  },
 ];
 
 const operacoesPJ: Operacao[] = [

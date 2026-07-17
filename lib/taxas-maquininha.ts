@@ -1,7 +1,4 @@
-import { list, put } from "@vercel/blob";
-import { blobConfigurado } from "@/lib/logos";
-
-const CAMINHO_TAXAS = "taxas-maquininha.json";
+import { gravarObjeto, lerObjetoTexto } from "@/lib/r2";
 
 export type ModalidadeTaxa = "pix" | "debito" | "credito_vista" | "credito_parcelado";
 
@@ -16,53 +13,31 @@ export type TaxaMaquininha = {
   atualizadoEm: string;
 };
 
-// Mesmo gotcha de lib/sites.ts: `revalidate: false` força leitura sempre
-// fresca (Server Actions do admin, fora de rota estática). Um número alinha
-// com o cache de dados do Next e é obrigatório nas páginas públicas
-// estáticas - um fetch "no-store" ali quebra a regeneração em runtime.
-async function buscarTaxasJson(revalidate: number | false): Promise<TaxaMaquininha[]> {
-  if (!blobConfigurado()) return [];
+const CAMINHO_TAXAS = "taxas-maquininha.json";
 
+async function buscarTaxasJson(): Promise<TaxaMaquininha[]> {
+  const texto = await lerObjetoTexto(CAMINHO_TAXAS);
+  if (!texto) return [];
   try {
-    const { blobs } = await list({ prefix: CAMINHO_TAXAS });
-    const arquivo = blobs.find((b) => b.pathname === CAMINHO_TAXAS);
-    if (!arquivo) return [];
-
-    const res = await fetch(
-      arquivo.url,
-      revalidate === false ? { cache: "no-store" } : { next: { revalidate } }
-    );
-    if (!res.ok) return [];
-    return (await res.json()) as TaxaMaquininha[];
+    return JSON.parse(texto) as TaxaMaquininha[];
   } catch {
     return [];
   }
 }
 
-// Usado pela página pública do comparador de maquininhas - revalidação
-// alinhada com o mesmo período das outras taxas do site.
+// Leitura sempre fresca - sem o Data Cache do Next (ver lib/sites.ts).
 export function obterTaxasMaquininha(): Promise<TaxaMaquininha[]> {
-  return buscarTaxasJson(60 * 60 * 24);
-}
-
-// Usado só dentro das Server Actions de admin, pra garantir leitura fresca
-// antes de regravar o arquivo.
-function obterTaxasAtuais(): Promise<TaxaMaquininha[]> {
-  return buscarTaxasJson(false);
+  return buscarTaxasJson();
 }
 
 async function gravar(taxas: TaxaMaquininha[]): Promise<void> {
-  await put(CAMINHO_TAXAS, JSON.stringify(taxas), {
-    access: "public",
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
+  await gravarObjeto(CAMINHO_TAXAS, JSON.stringify(taxas), "application/json");
 }
 
 export async function adicionarTaxaMaquininha(
   entrada: Omit<TaxaMaquininha, "id" | "atualizadoEm">
 ): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   taxas.push({
     ...entrada,
     id: crypto.randomUUID(),
@@ -72,7 +47,7 @@ export async function adicionarTaxaMaquininha(
 }
 
 export async function removerTaxaMaquininha(id: string): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   await gravar(taxas.filter((t) => t.id !== id));
 }
 
@@ -80,7 +55,7 @@ export async function atualizarTaxaMaquininha(
   id: string,
   entrada: Omit<TaxaMaquininha, "id" | "atualizadoEm">
 ): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   const indice = taxas.findIndex((t) => t.id === id);
   if (indice === -1) throw new Error("Taxa não encontrada.");
   taxas[indice] = { ...entrada, id, atualizadoEm: new Date().toISOString() };
@@ -99,7 +74,7 @@ export async function substituirTaxasDoAdquirente(
   adquirente: string,
   novasLinhas: Omit<TaxaMaquininha, "id" | "atualizadoEm">[]
 ): Promise<void> {
-  const atuais = await obterTaxasAtuais();
+  const atuais = await buscarTaxasJson();
   const agora = new Date().toISOString();
   const semAdquirente = atuais.filter((t) => t.adquirente !== adquirente);
   const novas = novasLinhas.map((linha) => ({

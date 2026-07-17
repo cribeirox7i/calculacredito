@@ -1,10 +1,10 @@
 "use server";
 
-import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
-import { caminhoBlob } from "@/lib/logos";
+import { caminhoLogo } from "@/lib/logos";
 import { lerLinhasPlanilha } from "@/lib/planilha";
 import { validarLinhasSites } from "@/lib/planilha-sites";
+import { excluirObjeto, gravarObjeto } from "@/lib/r2";
 import { removerSite, salvarSite } from "@/lib/sites";
 import type { ResultadoImportacaoUI } from "./tipos-importacao";
 
@@ -30,10 +30,8 @@ export async function salvarInstituicao(formData: FormData) {
   }
 
   if (temArquivo) {
-    await put(caminhoBlob(cnpj8.trim()), arquivo as File, {
-      access: "public",
-      allowOverwrite: true,
-    });
+    const buffer = Buffer.from(await (arquivo as File).arrayBuffer());
+    await gravarObjeto(caminhoLogo(cnpj8.trim()), buffer, (arquivo as File).type || "image/png");
   }
 
   if (temSite) {
@@ -44,8 +42,8 @@ export async function salvarInstituicao(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
-export async function excluirLogo(url: string) {
-  await del(url);
+export async function excluirLogo(cnpj8: string) {
+  await excluirObjeto(caminhoLogo(cnpj8));
   revalidatePath("/admin");
   revalidatePath("/", "layout");
 }

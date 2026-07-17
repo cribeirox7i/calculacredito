@@ -1,5 +1,4 @@
-import { list, put } from "@vercel/blob";
-import { blobConfigurado } from "@/lib/logos";
+import { gravarObjeto, lerObjetoTexto } from "@/lib/r2";
 
 const CAMINHO_TAXAS = "taxas-carta-fianca.json";
 
@@ -13,46 +12,29 @@ export type TaxaCartaFianca = {
   atualizadoEm: string;
 };
 
-// Mesmo padrão de lib/taxas-fgts.ts e lib/taxas-hotmoney.ts.
-async function buscarTaxasJson(revalidate: number | false): Promise<TaxaCartaFianca[]> {
-  if (!blobConfigurado()) return [];
-
+async function buscarTaxasJson(): Promise<TaxaCartaFianca[]> {
+  const texto = await lerObjetoTexto(CAMINHO_TAXAS);
+  if (!texto) return [];
   try {
-    const { blobs } = await list({ prefix: CAMINHO_TAXAS });
-    const arquivo = blobs.find((b) => b.pathname === CAMINHO_TAXAS);
-    if (!arquivo) return [];
-
-    const res = await fetch(
-      arquivo.url,
-      revalidate === false ? { cache: "no-store" } : { next: { revalidate } }
-    );
-    if (!res.ok) return [];
-    return (await res.json()) as TaxaCartaFianca[];
+    return JSON.parse(texto) as TaxaCartaFianca[];
   } catch {
     return [];
   }
 }
 
+// Leitura sempre fresca - sem o Data Cache do Next (ver lib/sites.ts).
 export function obterTaxasCartaFianca(): Promise<TaxaCartaFianca[]> {
-  return buscarTaxasJson(60 * 60 * 24);
-}
-
-function obterTaxasAtuais(): Promise<TaxaCartaFianca[]> {
-  return buscarTaxasJson(false);
+  return buscarTaxasJson();
 }
 
 async function gravar(taxas: TaxaCartaFianca[]): Promise<void> {
-  await put(CAMINHO_TAXAS, JSON.stringify(taxas), {
-    access: "public",
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
+  await gravarObjeto(CAMINHO_TAXAS, JSON.stringify(taxas), "application/json");
 }
 
 export async function adicionarTaxaCartaFianca(
   entrada: Omit<TaxaCartaFianca, "id" | "atualizadoEm">
 ): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   taxas.push({
     ...entrada,
     id: crypto.randomUUID(),
@@ -62,7 +44,7 @@ export async function adicionarTaxaCartaFianca(
 }
 
 export async function removerTaxaCartaFianca(id: string): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   await gravar(taxas.filter((t) => t.id !== id));
 }
 
@@ -70,7 +52,7 @@ export async function atualizarTaxaCartaFianca(
   id: string,
   entrada: Omit<TaxaCartaFianca, "id" | "atualizadoEm">
 ): Promise<void> {
-  const taxas = await obterTaxasAtuais();
+  const taxas = await buscarTaxasJson();
   const indice = taxas.findIndex((t) => t.id === id);
   if (indice === -1) throw new Error("Taxa não encontrada.");
   taxas[indice] = { ...entrada, id, atualizadoEm: new Date().toISOString() };
@@ -85,7 +67,7 @@ export async function substituirTaxasDaInstituicao(
   instituicao: string,
   novasLinhas: Omit<TaxaCartaFianca, "id" | "atualizadoEm">[]
 ): Promise<void> {
-  const atuais = await obterTaxasAtuais();
+  const atuais = await buscarTaxasJson();
   const agora = new Date().toISOString();
   const semInstituicao = atuais.filter((t) => t.instituicao !== instituicao);
   const novas = novasLinhas.map((linha) => ({

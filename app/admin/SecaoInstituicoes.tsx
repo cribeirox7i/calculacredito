@@ -74,7 +74,7 @@ export function SecaoInstituicoes({
                   <td className="px-4 py-2">
                     <div className="flex gap-3">
                       {urlLogo && (
-                        <form action={excluirLogo.bind(null, urlLogo)}>
+                        <form action={excluirLogo.bind(null, cnpj8)}>
                           <button type="submit" className="text-xs text-red-600 underline dark:text-red-400">
                             Excluir logo
                           </button>

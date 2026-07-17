@@ -1,6 +1,6 @@
-import { list } from "@vercel/blob";
+import { listarObjetosComPrefixo, r2Configurado } from "@/lib/r2";
 
-const PREFIXO_BLOB = "logos/";
+const PREFIXO_LOGOS = "logos/";
 
 const MAPA_ACENTOS: Record<string, string> = {
   á: "a",
@@ -42,35 +42,27 @@ export function slugify(nome: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function caminhoBlob(cnpj8: string): string {
-  return `${PREFIXO_BLOB}${cnpj8}.png`;
+export function caminhoLogo(cnpj8: string): string {
+  return `${PREFIXO_LOGOS}${cnpj8}.png`;
 }
 
-export function codigoDoCaminho(pathname: string): string {
-  return pathname.replace(PREFIXO_BLOB, "").replace(/\.[^.]+$/, "");
+export function codigoDoCaminho(chave: string): string {
+  return chave.replace(PREFIXO_LOGOS, "").replace(/\.[^.]+$/, "");
 }
 
-// A Vercel autentica o Blob por BLOB_READ_WRITE_TOKEN (token clássico) ou,
-// mais recentemente, por OIDC usando BLOB_STORE_ID - só existem depois que
-// o Blob Store é ativado no projeto. Sem eles, o site continua funcionando
-// normalmente, só que sem logos (cai no fallback de avatar com iniciais).
-export function blobConfigurado(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
-}
-
+// O bucket do R2 é privado (sem URL pública) - as imagens são servidas por
+// uma rota própria (app/logo/[cnpj8]/route.ts) que faz o proxy do
+// GetObjectCommand. Por isso o mapa devolve um caminho same-origin em vez de
+// uma URL de storage direta.
 export async function obterLogosPorCnpj8(): Promise<Record<string, string>> {
-  if (!blobConfigurado()) return {};
+  if (!r2Configurado()) return {};
 
-  try {
-    const { blobs } = await list({ prefix: PREFIXO_BLOB });
-    const mapa: Record<string, string> = {};
-    for (const blob of blobs) {
-      mapa[codigoDoCaminho(blob.pathname)] = blob.url;
-    }
-    return mapa;
-  } catch {
-    return {};
+  const chaves = await listarObjetosComPrefixo(PREFIXO_LOGOS);
+  const mapa: Record<string, string> = {};
+  for (const chave of chaves) {
+    mapa[codigoDoCaminho(chave)] = `/logo/${codigoDoCaminho(chave)}`;
   }
+  return mapa;
 }
 
 const CORES_AVATAR = [

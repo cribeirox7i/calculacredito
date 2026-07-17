@@ -1,23 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import type { TaxaFgts } from "@/lib/taxas-fgts";
 import { editarTaxa, removerTaxa } from "./actions-fgts";
+import { MensagemAcao } from "./MensagemAcao";
+import type { EstadoAcao } from "./tipos-acao";
 
 export function LinhaTaxaFgts({ taxa }: { taxa: TaxaFgts }) {
   const [editando, setEditando] = useState(false);
+
+  async function acaoEditar(_estadoAnterior: EstadoAcao, formData: FormData): Promise<EstadoAcao> {
+    try {
+      await editarTaxa(taxa.id, formData);
+      setEditando(false);
+      return null;
+    } catch (erro) {
+      return { ok: false, mensagem: erro instanceof Error ? erro.message : "Erro ao salvar a taxa." };
+    }
+  }
+
+  const [estado, formAction, pendente] = useActionState(acaoEditar, null);
 
   if (editando) {
     return (
       <tr className="border-t border-zinc-100 dark:border-zinc-800">
         <td colSpan={5} className="px-4 py-3">
-          <form
-            action={async (formData) => {
-              await editarTaxa(taxa.id, formData);
-              setEditando(false);
-            }}
-            className="flex flex-wrap items-end gap-2"
-          >
+          <form action={formAction} className="flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-1 text-xs font-medium text-zinc-700 dark:text-zinc-300">
               Instituição
               <input
@@ -71,9 +79,10 @@ export function LinhaTaxaFgts({ taxa }: { taxa: TaxaFgts }) {
             </label>
             <button
               type="submit"
-              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              disabled={pendente}
+              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             >
-              Salvar
+              {pendente ? "Salvando..." : "Salvar"}
             </button>
             <button
               type="button"
@@ -83,6 +92,7 @@ export function LinhaTaxaFgts({ taxa }: { taxa: TaxaFgts }) {
               Cancelar
             </button>
           </form>
+          <MensagemAcao estado={estado} />
         </td>
       </tr>
     );

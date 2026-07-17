@@ -9,3 +9,15 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/* O Preflight do Tailwind não define cursor:pointer em <button> (mudança
+   deliberada desde a v3.3) - sem isso, botões mostram o cursor padrão de
+   seta em vez da mãozinha, o que parece quebrado em elementos claramente
+   clicáveis. :not(:disabled) evita sobrescrever o cursor "not-allowed" já
+   usado em botões desabilitados. */
+@layer base {
+  button:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+}

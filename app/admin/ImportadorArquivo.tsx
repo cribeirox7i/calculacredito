@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import { MensagemAcao } from "./MensagemAcao";
 import type { ResultadoImportacaoUI } from "./tipos-importacao";
 
 export function ImportadorArquivo({
@@ -87,17 +88,7 @@ export function ImportadorArquivo({
         </form>
       </div>
 
-      {estado && (
-        <p
-          className={`mt-3 whitespace-pre-wrap rounded-lg p-3 text-xs ${
-            estado.ok
-              ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
-              : "bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-200"
-          }`}
-        >
-          {estado.mensagem}
-        </p>
-      )}
+      <MensagemAcao estado={estado} />
     </div>
   );
 }

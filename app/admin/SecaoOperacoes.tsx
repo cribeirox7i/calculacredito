@@ -1,5 +1,10 @@
+"use client";
+
+import { useActionState } from "react";
 import { LINKS_PF, LINKS_PJ } from "@/lib/navegacao";
 import { salvarVisibilidade } from "./actions-operacoes";
+import { MensagemAcao } from "./MensagemAcao";
+import type { EstadoAcao } from "./tipos-acao";
 
 type LinkNav = { href: string; label: string };
 
@@ -11,14 +16,14 @@ function GrupoOperacoes({ titulo, links, ocultasSet }: { titulo: string; links: 
         {links.map((link) => (
           <label
             key={link.href}
-            className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm dark:border-zinc-800"
+            className="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-200 px-4 py-2.5 text-sm dark:border-zinc-800"
           >
             <input
               type="checkbox"
               name="visivel"
               value={link.href}
               defaultChecked={!ocultasSet.has(link.href)}
-              className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700"
+              className="h-4 w-4 cursor-pointer rounded border-zinc-300 dark:border-zinc-700"
             />
             <span className="flex-1 text-zinc-900 dark:text-zinc-100">{link.label}</span>
             <span className="text-xs text-zinc-500 dark:text-zinc-400">{link.href}</span>
@@ -29,8 +34,18 @@ function GrupoOperacoes({ titulo, links, ocultasSet }: { titulo: string; links: 
   );
 }
 
+async function acao(_estadoAnterior: EstadoAcao, formData: FormData): Promise<EstadoAcao> {
+  try {
+    await salvarVisibilidade(formData);
+    return { ok: true, mensagem: "Visibilidade dos menus salva com sucesso." };
+  } catch (erro) {
+    return { ok: false, mensagem: erro instanceof Error ? erro.message : "Erro ao salvar." };
+  }
+}
+
 export function SecaoOperacoes({ ocultas }: { ocultas: string[] }) {
   const ocultasSet = new Set(ocultas);
+  const [estado, formAction, pendente] = useActionState(acao, null);
 
   return (
     <div>
@@ -42,17 +57,19 @@ export function SecaoOperacoes({ ocultas }: { ocultas: string[] }) {
         menus.
       </p>
 
-      <form action={salvarVisibilidade} className="mt-6 space-y-6">
+      <form action={formAction} className="mt-6 space-y-6">
         <GrupoOperacoes titulo="Pessoa física" links={LINKS_PF} ocultasSet={ocultasSet} />
         <GrupoOperacoes titulo="Pessoa jurídica" links={LINKS_PJ} ocultasSet={ocultasSet} />
 
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          disabled={pendente}
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
         >
-          Salvar
+          {pendente ? "Salvando..." : "Salvar"}
         </button>
       </form>
+      <MensagemAcao estado={estado} />
     </div>
   );
 }

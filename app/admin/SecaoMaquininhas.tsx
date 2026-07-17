@@ -1,15 +1,9 @@
-import type { ModalidadeTaxa, TaxaMaquininha } from "@/lib/taxas-maquininha";
-import { adicionarTaxa, importarArquivo } from "./actions-maquininhas";
+import type { TaxaMaquininha } from "@/lib/taxas-maquininha";
+import { importarArquivo } from "./actions-maquininhas";
 import { BotaoLimparTaxas } from "./BotaoLimparTaxas";
+import { FormAdicionarTaxaMaquininha } from "./FormAdicionarTaxaMaquininha";
 import { ImportadorArquivo } from "./ImportadorArquivo";
 import { LinhaTaxaMaquininha } from "./LinhaTaxaMaquininha";
-
-const ROTULO_MODALIDADE: Record<ModalidadeTaxa, string> = {
-  pix: "Pix",
-  debito: "Débito",
-  credito_vista: "Crédito à vista",
-  credito_parcelado: "Crédito parcelado",
-};
 
 export function SecaoMaquininhas({ taxas }: { taxas: TaxaMaquininha[] }) {
   const adquirentes = [...new Set(taxas.map((t) => t.adquirente))].sort();
@@ -37,85 +31,9 @@ export function SecaoMaquininhas({ taxas }: { taxas: TaxaMaquininha[] }) {
         />
       </div>
 
-      <form
-        action={adicionarTaxa}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Adquirente
-          <input
-            type="text"
-            name="adquirente"
-            required
-            placeholder="Cielo"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Plano
-          <input
-            type="text"
-            name="plano"
-            required
-            placeholder="Smart - Sem aluguel"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Modalidade
-          <select
-            name="modalidade"
-            required
-            defaultValue=""
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          >
-            <option value="" disabled>
-              Selecione
-            </option>
-            {Object.entries(ROTULO_MODALIDADE).map(([valor, rotulo]) => (
-              <option key={valor} value={valor}>
-                {rotulo}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Parcelas
-          <input
-            type="number"
-            name="parcelas"
-            min={2}
-            max={24}
-            placeholder="só p/ parcelado"
-            className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Taxa (%)
-          <input
-            type="text"
-            name="taxa"
-            required
-            placeholder="3,15"
-            className="w-28 rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Fonte (URL, opcional)
-          <input
-            type="text"
-            name="fonteUrl"
-            placeholder="https://..."
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-        >
-          Adicionar linha
-        </button>
-      </form>
+      <div className="mt-6">
+        <FormAdicionarTaxaMaquininha />
+      </div>
 
       {adquirentes.length > 0 && (
         <div className="mt-8 flex items-center justify-between">

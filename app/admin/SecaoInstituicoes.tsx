@@ -1,4 +1,5 @@
-import { excluirLogo, excluirSite, importarArquivoSites, salvarInstituicao } from "./actions-instituicoes";
+import { excluirLogo, excluirSite, importarArquivoSites } from "./actions-instituicoes";
+import { FormSalvarInstituicao } from "./FormSalvarInstituicao";
 import { ImportadorArquivo } from "./ImportadorArquivo";
 
 export function SecaoInstituicoes({
@@ -32,41 +33,9 @@ export function SecaoInstituicoes({
         />
       </div>
 
-      <form
-        action={salvarInstituicao}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Código CNPJ8 (Banco Central)
-          <input
-            type="text"
-            name="cnpj8"
-            pattern="\d{8}"
-            title="8 dígitos numéricos"
-            required
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Imagem (PNG, fundo transparente de preferência)
-          <input type="file" name="arquivo" accept="image/*" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Site oficial (URL)
-          <input
-            type="text"
-            name="site"
-            placeholder="www.banco.com.br"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-800"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-        >
-          Salvar
-        </button>
-      </form>
+      <div className="mt-6">
+        <FormSalvarInstituicao />
+      </div>
 
       <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left text-sm">

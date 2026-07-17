@@ -6,6 +6,8 @@ const ABAS = [
   { id: "instituicoes", label: "Instituições" },
   { id: "maquininhas", label: "Maquininhas" },
   { id: "fgts", label: "Antecipação FGTS" },
+  { id: "hotmoney", label: "Hot Money" },
+  { id: "cartaFianca", label: "Carta Fiança" },
   { id: "menus", label: "Menus" },
   { id: "senha", label: "Senha" },
 ] as const;
@@ -16,21 +18,33 @@ export function AdminTabs({
   instituicoes,
   maquininhas,
   fgts,
+  hotmoney,
+  cartaFianca,
   menus,
   senha,
 }: {
   instituicoes: ReactNode;
   maquininhas: ReactNode;
   fgts: ReactNode;
+  hotmoney: ReactNode;
+  cartaFianca: ReactNode;
   menus: ReactNode;
   senha: ReactNode;
 }) {
   const [aba, setAba] = useState<AbaId>("instituicoes");
-  const conteudoPorAba: Record<AbaId, ReactNode> = { instituicoes, maquininhas, fgts, menus, senha };
+  const conteudoPorAba: Record<AbaId, ReactNode> = {
+    instituicoes,
+    maquininhas,
+    fgts,
+    hotmoney,
+    cartaFianca,
+    menus,
+    senha,
+  };
 
   return (
     <div>
-      <div className="flex gap-1 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-wrap gap-1 border-b border-zinc-200 dark:border-zinc-800">
         {ABAS.map((a) => (
           <button
             key={a.id}

@@ -3,11 +3,15 @@ import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { obterTaxasMaquininha } from "@/lib/taxas-maquininha";
 import { obterTaxasFgts } from "@/lib/taxas-fgts";
+import { obterTaxasHotMoney } from "@/lib/taxas-hotmoney";
+import { obterTaxasCartaFianca } from "@/lib/taxas-carta-fianca";
 import { obterOperacoesOcultasAtual } from "@/lib/visibilidade-operacoes";
 import { AdminTabs } from "./AdminTabs";
 import { SecaoInstituicoes } from "./SecaoInstituicoes";
 import { SecaoMaquininhas } from "./SecaoMaquininhas";
 import { SecaoFgts } from "./SecaoFgts";
+import { SecaoHotMoney } from "./SecaoHotMoney";
+import { SecaoCartaFianca } from "./SecaoCartaFianca";
 import { SecaoOperacoes } from "./SecaoOperacoes";
 import { SecaoSenha } from "./SecaoSenha";
 
@@ -27,11 +31,13 @@ export default async function AdminPage() {
     );
   }
 
-  const [{ blobs }, sites, taxas, taxasFgts, operacoesOcultas] = await Promise.all([
+  const [{ blobs }, sites, taxas, taxasFgts, taxasHotMoney, taxasCartaFianca, operacoesOcultas] = await Promise.all([
     list({ prefix: "logos/" }),
     obterSitesPorCnpj8(),
     obterTaxasMaquininha(),
     obterTaxasFgts(),
+    obterTaxasHotMoney(),
+    obterTaxasCartaFianca(),
     obterOperacoesOcultasAtual(),
   ]);
 
@@ -45,6 +51,8 @@ export default async function AdminPage() {
         instituicoes={<SecaoInstituicoes logosPorCnpj8={logosPorCnpj8} sites={sites} />}
         maquininhas={<SecaoMaquininhas taxas={taxas} />}
         fgts={<SecaoFgts taxas={taxasFgts} />}
+        hotmoney={<SecaoHotMoney taxas={taxasHotMoney} />}
+        cartaFianca={<SecaoCartaFianca taxas={taxasCartaFianca} />}
         menus={<SecaoOperacoes ocultas={operacoesOcultas} />}
         senha={<SecaoSenha />}
       />

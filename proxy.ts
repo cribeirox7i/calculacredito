@@ -22,5 +22,9 @@ export const config = {
     "/admin/exportar-maquininhas-xlsx",
     "/admin/exportar-fgts",
     "/admin/exportar-fgts-xlsx",
+    "/admin/exportar-hotmoney",
+    "/admin/exportar-hotmoney-xlsx",
+    "/admin/exportar-carta-fianca",
+    "/admin/exportar-carta-fianca-xlsx",
   ],
 };

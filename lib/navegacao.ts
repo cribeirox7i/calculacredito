@@ -29,6 +29,8 @@ export const LINKS_PJ: LinkNav[] = [
   { href: "/cheque-especial-pj", label: "Cheque especial PJ" },
   { href: "/desconto-duplicatas", label: "Desconto de duplicatas" },
   { href: "/maquininha-de-cartao", label: "Maquininha de cartão" },
+  { href: "/hot-money", label: "Hot money" },
+  { href: "/carta-fianca", label: "Carta fiança" },
 ];
 
 export const PREFIXOS_PJ = [
@@ -37,4 +39,6 @@ export const PREFIXOS_PJ = [
   "/cheque-especial-pj",
   "/desconto-duplicatas",
   "/maquininha-de-cartao",
+  "/hot-money",
+  "/carta-fianca",
 ] as const;

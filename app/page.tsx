@@ -66,6 +66,16 @@ const operacoesPJ: Operacao[] = [
     descricao: "Compare as taxas de débito, crédito e parcelado entre as principais adquirentes.",
     href: "/maquininha-de-cartao",
   },
+  {
+    titulo: "Hot money",
+    descricao: "Empréstimo de curtíssimo prazo, pago de uma vez no vencimento - compare taxas.",
+    href: "/hot-money",
+  },
+  {
+    titulo: "Carta fiança",
+    descricao: "Compare a taxa anual cobrada por cada instituição para emitir a garantia.",
+    href: "/carta-fianca",
+  },
 ];
 
 function GridOperacoes({ operacoes }: { operacoes: Operacao[] }) {

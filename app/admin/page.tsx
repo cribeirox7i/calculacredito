@@ -2,9 +2,11 @@ import { list } from "@vercel/blob";
 import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { obterTaxasMaquininha } from "@/lib/taxas-maquininha";
+import { obterTaxasFgts } from "@/lib/taxas-fgts";
 import { AdminTabs } from "./AdminTabs";
 import { SecaoInstituicoes } from "./SecaoInstituicoes";
 import { SecaoMaquininhas } from "./SecaoMaquininhas";
+import { SecaoFgts } from "./SecaoFgts";
 import { SecaoSenha } from "./SecaoSenha";
 
 export const dynamic = "force-dynamic";
@@ -23,10 +25,11 @@ export default async function AdminPage() {
     );
   }
 
-  const [{ blobs }, sites, taxas] = await Promise.all([
+  const [{ blobs }, sites, taxas, taxasFgts] = await Promise.all([
     list({ prefix: "logos/" }),
     obterSitesPorCnpj8(),
     obterTaxasMaquininha(),
+    obterTaxasFgts(),
   ]);
 
   const logosPorCnpj8 = new Map(blobs.map((b) => [codigoDoCaminho(b.pathname), b.url]));
@@ -38,6 +41,7 @@ export default async function AdminPage() {
       <AdminTabs
         instituicoes={<SecaoInstituicoes logosPorCnpj8={logosPorCnpj8} sites={sites} />}
         maquininhas={<SecaoMaquininhas taxas={taxas} />}
+        fgts={<SecaoFgts taxas={taxasFgts} />}
         senha={<SecaoSenha />}
       />
     </main>

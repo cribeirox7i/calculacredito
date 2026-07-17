@@ -20,5 +20,7 @@ export const config = {
     "/admin/exportar-sites-xlsx",
     "/admin/exportar-maquininhas",
     "/admin/exportar-maquininhas-xlsx",
+    "/admin/exportar-fgts",
+    "/admin/exportar-fgts-xlsx",
   ],
 };

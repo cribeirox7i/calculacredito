@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 const ABAS = [
   { id: "instituicoes", label: "Instituições" },
   { id: "maquininhas", label: "Maquininhas" },
+  { id: "fgts", label: "Antecipação FGTS" },
   { id: "senha", label: "Senha" },
 ] as const;
 
@@ -13,14 +14,16 @@ type AbaId = (typeof ABAS)[number]["id"];
 export function AdminTabs({
   instituicoes,
   maquininhas,
+  fgts,
   senha,
 }: {
   instituicoes: ReactNode;
   maquininhas: ReactNode;
+  fgts: ReactNode;
   senha: ReactNode;
 }) {
   const [aba, setAba] = useState<AbaId>("instituicoes");
-  const conteudoPorAba: Record<AbaId, ReactNode> = { instituicoes, maquininhas, senha };
+  const conteudoPorAba: Record<AbaId, ReactNode> = { instituicoes, maquininhas, fgts, senha };
 
   return (
     <div>

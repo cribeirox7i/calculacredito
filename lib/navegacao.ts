@@ -12,6 +12,7 @@ export const LINKS_PF: LinkNav[] = [
     prefixoAtivo: "/financiamento-imobiliario",
   },
   { href: "/saque-aniversario", label: "Saque-aniversário FGTS" },
+  { href: "/antecipacao-fgts", label: "Antecipação FGTS" },
 ];
 
 export const LINKS_PJ: LinkNav[] = [

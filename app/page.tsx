@@ -32,6 +32,11 @@ const operacoesPF: Operacao[] = [
     descricao: "Calcule quanto você pode sacar por ano pela tabela oficial de alíquotas.",
     href: "/saque-aniversario",
   },
+  {
+    titulo: "Antecipação FGTS",
+    descricao: "Compare quanto cada instituição paga hoje pelas parcelas futuras do saque-aniversário.",
+    href: "/antecipacao-fgts",
+  },
 ];
 
 const operacoesPJ: Operacao[] = [

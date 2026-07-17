@@ -15,9 +15,9 @@ function GrupoOperacoes({ titulo, links, ocultasSet }: { titulo: string; links: 
           >
             <input
               type="checkbox"
-              name="oculta"
+              name="visivel"
               value={link.href}
-              defaultChecked={ocultasSet.has(link.href)}
+              defaultChecked={!ocultasSet.has(link.href)}
               className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700"
             />
             <span className="flex-1 text-zinc-900 dark:text-zinc-100">{link.label}</span>
@@ -36,7 +36,7 @@ export function SecaoOperacoes({ ocultas }: { ocultas: string[] }) {
     <div>
       <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Menus de operações</h2>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Marque uma operação para ocultá-la do menu superior, do rodapé e da
+        Desmarque uma operação para ocultá-la do menu superior, do rodapé e da
         tela inicial - útil quando ainda não há taxas cadastradas para aquele
         produto. A página continua acessível por link direto, só some dos
         menus.

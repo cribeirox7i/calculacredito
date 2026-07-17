@@ -1,6 +1,6 @@
 # Plano — CalculaCredito
 
-> Nome do repositório/pacote (`simula-credito`) e da pasta local ficaram como estavam na criação do projeto; o produto foi renomeado para **CalculaCredito** em 2026-07-15/16. Produção: **https://calculacredito.vercel.app**. Repo: `github.com/cribeirox7i/calculacredito`.
+> Nome do repositório/pacote (`simula-credito`) e da pasta local ficaram como estavam na criação do projeto; o produto foi renomeado para **CalculaCredito** em 2026-07-15/16. Produção: **https://calculacredito.com.br** (domínio próprio; `calculacredito.vercel.app` continua funcionando). Repo: `github.com/cribeirox7i/calculacredito`.
 
 ## 1. Objetivo e escopo
 
@@ -8,132 +8,133 @@ Site leve, sem banco de dados tradicional e sem login, que simula operações de
 
 **Escopo atual — Pessoa Física e Pessoa Jurídica:**
 
-- **Pessoa Física**: crédito pessoal, crédito consignado (INSS/privado/público), financiamento de veículo, financiamento imobiliário (SFH "reguladas" / SFI "mercado" × prefixado/TR/IPCA).
-- **Pessoa Jurídica**: capital de giro (troca automática entre prazo até/acima de 365 dias conforme o valor digitado no campo "prazo" da calculadora — não é seletor de rota separado), conta garantida, cheque especial PJ, desconto de duplicatas.
+- **Pessoa Física**: crédito pessoal, crédito consignado (INSS/privado/público), financiamento de veículo, financiamento imobiliário (SFH "reguladas" / SFI "mercado" × prefixado/TR/IPCA), **saque-aniversário FGTS**, **antecipação do saque-aniversário FGTS**.
+- **Pessoa Jurídica**: capital de giro (troca automática entre prazo até/acima de 365 dias conforme o valor digitado no campo "prazo" da calculadora — não é seletor de rota separado), conta garantida, cheque especial PJ, desconto de duplicatas, **maquininha de cartão**, **hot money**, **carta fiança**.
 
-A home (`app/page.tsx`) é dividida em 2 seções — "Para mim" (PF) e "Para minha empresa" (PJ) — e a navbar (`components/NavBar.tsx`) tem um alternador "Pessoas"/"Empresas" que troca os atalhos exibidos conforme o prefixo da rota atual.
+A home (`app/page.tsx`) é dividida em 2 seções — "Para mim" (PF) e "Para minha empresa" (PJ) — e a navbar (`components/NavBar.tsx`) tem um alternador "Pessoas"/"Empresas" que troca os atalhos exibidos conforme o prefixo da rota atual (`lib/navegacao.ts` centraliza `LINKS_PF`/`LINKS_PJ`/`PREFIXOS_PJ`, compartilhado entre NavBar e Footer). Qualquer operação pode ser ocultada desses menus (NavBar/rodapé/home) sem deploy, pelo admin — ver seção 7.
 
 ## 2. Arquitetura
 
-- **Next.js 16 + TypeScript + Tailwind**, hospedado na Vercel, seguindo o mesmo padrão do AromaLabTec: frontend estático/SSR + função serverless fazendo proxy servidor-a-servidor para a API do BCB (evita CORS, esconde detalhes de implementação, permite cache).
-- **Sem banco de dados**: todas as páginas de modalidade são **estáticas** via `generateStaticParams` + ISR (`revalidate: 86400`) — inclusive as que antes eram dinâmicas via searchParams. Isso resolveu um problema real de lentidão: a API do BCB podia levar mais de 60s pra responder, e páginas dinâmicas rodavam essa chamada a cada acesso.
-- **Sem login no site público**: toda simulação (valor, prazo, taxa) é calculada no client, em JS puro, a partir da taxa buscada no servidor. Nenhum dado do usuário é armazenado ou enviado a lugar nenhum — simplifica LGPD (não há dado pessoal coletado). Existe um **painel admin** separado (seção 6) protegido por senha, usado só para gerenciar logos/sites das instituições.
-- **Next 16 renomeou `middleware.ts` para `proxy.ts`** — é onde vive a proteção do admin (`proxy.ts`, matcher `/admin/logos/:path*`).
-- **Roteamento por tipo de operação**, uma rota estática por modalidade, cada uma com sua própria calculadora + conteúdo, para SEO individual (URLs e title tags específicos por intenção de busca):
+- **Next.js 16 + TypeScript + Tailwind**, hospedado na **Vercel** (plano Hobby, grátis). Storage em **Cloudflare R2** (seção 5) — arquitetura híbrida deliberada, ver motivo na seção 5.
+- **Sem banco de dados relacional**: todas as páginas de modalidade com dado do BCB são **estáticas** via `generateStaticParams` + ISR (`revalidate: 86400`). As operações curadas manualmente (maquininha, FGTS, hot money, carta fiança) também são estáticas, revalidadas via `revalidatePath` quando o admin salva algo.
+- **Sem login no site público**: toda simulação é calculada no client, em JS puro. Nenhum dado do usuário é armazenado. Existe um **painel admin unificado** (seção 6) protegido por senha.
+- **Next 16 renomeou `middleware.ts` para `proxy.ts`** — é onde vive a proteção do admin.
+- **Roteamento por tipo de operação**, uma rota estática por modalidade/produto:
 
-| Rota | Modalidade |
-|---|---|
-| `/credito-pessoal` | Crédito pessoal |
-| `/consignado/[tipo]` | Consignado (`inss`/`privado`/`publico`) |
-| `/financiamento-veiculo` | Financiamento de veículo |
-| `/financiamento-imobiliario/[tipo]` | Imobiliário (combina mercado/regulada + indexador) |
-| `/capital-giro/[indexador]` | Capital de giro PJ (`prefixado`/`posfixado`; curto/longo prazo trocado no client) |
-| `/conta-garantida/[indexador]` | Conta garantida PJ |
-| `/cheque-especial-pj` | Cheque especial PJ |
-| `/desconto-duplicatas` | Desconto de duplicatas PJ |
-| `/admin/login`, `/admin/logos` | Painel administrativo (logos/sites das instituições) |
+| Rota | Modalidade | Fonte de dado |
+|---|---|---|
+| `/credito-pessoal` | Crédito pessoal | BCB |
+| `/consignado/[tipo]` | Consignado (`inss`/`privado`/`publico`) | BCB |
+| `/financiamento-veiculo` | Financiamento de veículo | BCB |
+| `/financiamento-imobiliario/[tipo]/[indexador]` | Imobiliário (mercado/regulada × prefixado/TR/IPCA) | BCB |
+| `/capital-giro/[indexador]` | Capital de giro PJ | BCB |
+| `/conta-garantida/[indexador]` | Conta garantida PJ | BCB |
+| `/cheque-especial-pj` | Cheque especial PJ | BCB |
+| `/desconto-duplicatas` | Desconto de duplicatas PJ | BCB |
+| `/saque-aniversario` | Saque-aniversário FGTS | Tabela oficial fixa (`lib/saque-aniversario.json`) |
+| `/antecipacao-fgts` | Antecipação do saque-aniversário | Curado no admin (sem fonte oficial) |
+| `/maquininha-de-cartao` | Taxas de maquininha (MDR) | Curado no admin |
+| `/hot-money` | Empréstimo de curtíssimo prazo PJ | Curado no admin |
+| `/carta-fianca` | Garantia bancária PJ | Curado no admin |
+| `/admin` | Painel administrativo unificado (7 abas) | - |
+| `/sitemap.xml`, `/robots.txt` | SEO (gerados por `app/sitemap.ts`/`app/robots.ts`) | - |
 
 ## 3. Fonte de dados — API do Banco Central
 
 Dataset: **"Taxas de Juros de Operações de Crédito por Instituição Financeira"**, Portal de Dados Abertos do BCB.
 
 - Endpoint base: `https://olinda.bcb.gov.br/olinda/servico/taxaJuros/versao/v2/odata/`
-- Formatos: OData/JSON/XML.
-- Cada linha traz `InstituicaoFinanceira`, `TaxaJurosAoMes`, `TaxaJurosAoAno`, `Posicao` (ranking) e `cnpj8` — dá pra montar tabela comparativa por banco em todas as modalidades. **Não existe campo de "média de mercado" pronto** — o site calcula a média simples das instituições retornadas (a API não expõe peso por volume contratado nesse nível de detalhe).
-- As taxas já representam o custo efetivo médio (juros + encargos) da instituição, não a taxa nominal "de tabela".
-- **`codigoModalidade` vem `null` nas linhas de dado** — só existe populado no recurso `ParametrosConsulta`. Por isso o filtro em `lib/bcb.ts` usa o **nome exato da modalidade** (`Modalidade eq '...'`), não o código.
-- **Query OData precisa de `encodeURIComponent` manual**, não `URLSearchParams` — a API exige espaço como `%20`, e `URLSearchParams` codifica como `+`, o que quebra o `$filter` no servidor (erro 400).
-- Todos os códigos/nomes exatos de modalidade (PF e PJ) ficam centralizados em `lib/modalidades.ts`, validados via o recurso `ParametrosConsulta` (fonte de verdade, evita nome de string "chutado").
+- Cada linha traz `InstituicaoFinanceira`, `TaxaJurosAoMes`, `TaxaJurosAoAno`, `Posicao` (ranking) e `cnpj8`. **Não existe campo de "média de mercado" pronto** — o site calcula a média simples das instituições retornadas.
+- **`codigoModalidade` vem `null` nas linhas de dado** — só existe populado no recurso `ParametrosConsulta` (que usa `segmento`/`modalidade` em minúsculas, diferente dos outros recursos - atenção ao montar o filtro). Por isso o filtro em `lib/bcb.ts` usa o **nome exato da modalidade**.
+- **Query OData precisa de `encodeURIComponent` manual**, não `URLSearchParams` (o `+` vs `%20` quebra o `$filter` com erro 400).
+- Todos os códigos/nomes exatos de modalidade (PF e PJ) ficam centralizados em `lib/modalidades.ts`, validados via `ParametrosConsulta`.
+- **CDI**: buscado à parte via SGS (série 4389, `fetchTaxaCDI` em `lib/bcb.ts`), usado nas simulações pós-fixadas (capital de giro e conta garantida) para converter "CDI × %" em taxa mensal efetiva (`taxaAnualParaMensal` em `lib/amortizacao.ts`).
+- **Confirmado que NÃO existem no BCB** (verificado via `ParametrosConsulta`, todos os 29 registros de PF+PJ): saque-aniversário FGTS, antecipação FGTS, hot money, carta fiança, maquininha de cartão. Por isso essas 5 operações usam o modelo de curadoria manual (seção 7) em vez de dado oficial.
 
 ### Recurso `TaxasJurosDiariaPorInicioPeriodo` (atualiza a cada 5 dias úteis)
-Campos de data: `InicioPeriodo` / `FimPeriodo`. Usado por todas as modalidades PF exceto imobiliário, e por todas as modalidades PJ.
-
-| codigoModalidade | Modalidade | Uso no site |
-|---|---|---|
-| 221101 | Crédito pessoal não consignado - Prefixado | Crédito pessoal |
-| 218101 | Crédito pessoal consignado INSS - Prefixado | Consignado (INSS) |
-| 219101 | Crédito pessoal consignado privado - Prefixado | Consignado (privado) |
-| 220101 | Crédito pessoal consignado público - Prefixado | Consignado (público) |
-| 401101 | Aquisição de veículos - Prefixado | Financiamento de veículo |
-| 210101 / 210204 | Capital de giro até 365 dias - Prefixado / Pós-fixado (juros flutuantes) | Capital de giro (curto) |
-| 211101 / 211204 | Capital de giro acima de 365 dias - Prefixado / Pós-fixado (juros flutuantes) | Capital de giro (longo) |
-| 217101 / 217204 | Conta garantida - Prefixado / Pós-fixado (juros flutuantes) | Conta garantida |
-| 216101 | Cheque especial - Prefixado | Cheque especial PJ |
-| 301101 | Desconto de duplicatas - Prefixado | Desconto de duplicatas |
+Usado por todas as modalidades PF exceto imobiliário, e por todas as modalidades PJ com dado oficial (capital de giro, conta garantida, cheque especial, desconto de duplicatas).
 
 ### Recurso `TaxasJurosMensalPorMes` (atualiza uma vez por mês)
-Campo de data: `anoMes` (formato `"2026-06"`). Único uso: financiamento imobiliário, dividido em "taxas de mercado" (SFI) vs. "taxas reguladas" (SFH) × 3 indexadores:
+Único uso: financiamento imobiliário (`anoMes`, formato `"2026-06"`). Default do site: "regulada" (SFH) + TR.
 
-| codigoModalidade | Modalidade |
-|---|---|
-| 903101 | Mercado - Prefixado |
-| 903201 | Mercado - Pós-fixado referenciado em TR |
-| 903203 | Mercado - Pós-fixado referenciado em IPCA |
-| 905101 | Regulada - Prefixado |
-| 905201 | Regulada - Pós-fixado referenciado em TR |
-| 905203 | Regulada - Pós-fixado referenciado em IPCA |
+## 4. Motor de cálculo
 
-Default do site: "regulada" (SFH) + TR — maior cobertura de instituições observada nos testes. A tela de imobiliário tem um seletor extra (mercado/regulada + indexador) que as outras modalidades não têm.
+- **`lib/amortizacao.ts`**: Tabela Price (parcelas fixas), padrão para as 8 modalidades com dado do BCB. Mostra CET explicitamente.
+- **`lib/iof.ts`** + `lib/iof.json`: IOF (Imposto sobre Operações Financeiras) somado ao total pago em todas as simulações de crédito exceto financiamento imobiliário residencial PF (isento por lei). Alíquotas em JSON separado (fonte/data documentadas no arquivo) porque mudam por decreto - **revisar periodicamente**, houve controvérsia regulatória em 2025 (decretos + decisão do STF).
+- **`lib/saque-aniversario.ts`**: tabela oficial de alíquotas por faixa de saldo (Lei 8.036/1990, art. 20-B) - cálculo direto, sem juros.
+- **`lib/fgts-antecipacao.ts`**: valor presente das parcelas anuais futuras do saque-aniversário, descontadas mês a mês pela taxa da instituição (juros compostos).
+- **`lib/hotmoney.ts`**: juros simples pro-rata pelos dias corridos (produto de curtíssimo prazo, pago de uma vez no vencimento, não parcelado).
+- **`lib/carta-fianca.ts`**: taxa anual de serviço proporcional ao prazo do contrato (não é empréstimo, sem juros compostos).
 
-### Paginação
-A API pagina em blocos de até ~5000 linhas sem `@odata.nextLink` visível nos testes — cada consulta filtrada por modalidade + período mais recente retorna um volume pequeno (uma linha por instituição), então não é um problema em produção.
+## 5. Storage — Cloudflare R2 (migrado do Vercel Blob em 2026-07-17)
 
-## 4. Motor de cálculo (`lib/amortizacao.ts`)
+**Histórico**: o projeto usava Vercel Blob desde o início. Em 2026-07-17 a cota gratuita de Advanced Requests do Blob (2.000/mês) estourou 100% e a Vercel avisou que o acesso seria pausado por 30 dias, sem opção de renovação antecipada no plano gratuito. Causa provável: muitos deploys em sequência numa única sessão de desenvolvimento (cada build refaz operações de listagem em várias páginas) somado ao painel admin antigo fazendo várias chamadas de listagem sem cache a cada carregamento de tela. Migrado no mesmo dia para **Cloudflare R2**.
 
-- **Tabela Price** (sistema francês): parcelas fixas — padrão de mercado para todas as modalidades do site.
-- Fórmula padrão de amortização, implementada em JS puro no client, sem dependência externa.
-- Mostra **CET (Custo Efetivo Total)** de forma explícita, não só a taxa de juros.
-- Simulação recebe: valor, prazo (meses), e usa a taxa média buscada da API (com opção de o usuário ajustar manualmente, já que a taxa real depende do perfil de crédito dele).
+- **Por quê R2**: compatível com S3, tier gratuito de 1M operações Classe A (escrita/listagem) + 10M Classe B (leitura) por mês - cerca de 500x mais folga que o Blob. Hospedagem continua 100% na Vercel; só a camada de storage mudou.
+- **Bucket**: `calculacredito`, **100% privado** (sem URL pública, sem custom domain configurado na Cloudflare).
+- **Camada de acesso**: `lib/r2.ts` - cliente `@aws-sdk/client-s3` (`region: "auto"`, endpoint `https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com`), helpers `lerObjetoTexto`/`lerObjetoBuffer`/`gravarObjeto`/`excluirObjeto`/`listarObjetosComPrefixo`/`r2Configurado`.
+- **Env vars** (`.env.local` local + 3 ambientes na Vercel): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`.
+- **JSON** (`taxas-maquininha.json`, `taxas-fgts.json`, `taxas-hotmoney.json`, `taxas-carta-fianca.json`, `sites.json`, `admin-senha.json`, `operacoes-ocultas.json`): lido/escrito **direto por chave** via `GetObjectCommand`/`PutObjectCommand` - **sem** o padrão antigo do Blob (`list()` pra descobrir a URL, depois `fetch(url)`), que gerava operações de listagem caras só pra achar um arquivo cujo caminho já era conhecido.
+- **Logos** (PNG por CNPJ8, `logos/{cnpj8}.png`): como o bucket é privado, servidos por uma rota própria **`app/logo/[cnpj8]/route.ts`** que faz proxy de um `GetObjectCommand` (404 se não existir, `Cache-Control: public, max-age=86400`). `lib/logos.ts`'s `obterLogosPorCnpj8()` devolve `/logo/{cnpj8}` (caminho same-origin) em vez de URL direta - usado tanto no admin (`SecaoInstituicoes.tsx`) quanto nas tabelas comparativas públicas (`SimuladorInterativo.tsx`, componente `LogoInstituicao`).
+- **Sem cache de fetch do Next**: como as leituras usam o SDK do S3 (não `fetch()`), não passam pelo Data Cache do Next - o "gotcha" antigo do Blob (`no-store` quebrando páginas estáticas) não existe mais nesse formato. O cache que importa agora é o de **rota/página** (Full Route Cache + ISR + `revalidatePath` explícito nas Server Actions), não o de fetch individual.
+- **Sem a limitação de OIDC**: R2 autentica por chave simples, funciona igual em `next dev` local e em produção - diferente do Blob (só funcionava em deploys reais). Isso permitiu testar o CRUD completo do admin localmente pela primeira vez.
+- **Cuidado**: o bucket é o mesmo em dev e produção, não existe ambiente de teste separado - qualquer escrita feita localmente é real. Sempre limpar dados de teste depois de testar.
+- **Fallback sem R2 configurado**: se as env vars não estiverem definidas, o site funciona normalmente (todas as funções de leitura devolvem vazio/nulo em vez de lançar erro), só sem dados curados - cai no fallback de avatar com iniciais pros logos.
+- **Dado antigo do Blob não foi migrado automaticamente** - o bucket R2 começou vazio. Taxas de maquininha que já existiam precisam ser recadastradas (usuário tinha backup em CSV e reimportou pelo próprio admin).
 
-## 5. Logos e sites das instituições (`lib/logos.ts`, `lib/sites.ts`)
+## 6. Painel administrativo unificado (`app/admin/`)
 
-- **Sem banco de dados tradicional** — tudo fica no **Vercel Blob**, chaveado por **CNPJ8** (não por nome, porque os nomes retornados pelo BCB têm variações).
-- **Logos**: um PNG por instituição em `logos/{cnpj8}.png`.
-- **Sites**: um único arquivo `sites.json` no Blob, formato `{cnpj8: url}`.
-- **Fallback sem Blob configurado**: se `BLOB_READ_WRITE_TOKEN`/`BLOB_STORE_ID` não estiverem definidos, o site funciona normalmente, só que sem logos — cai num avatar com iniciais + cor derivada de hash do nome (`corAvatar`, `iniciaisInstituicao`).
-- **Autenticação do Blob**: por OIDC (`BLOB_STORE_ID`) ou token clássico (`BLOB_READ_WRITE_TOKEN`); `lib/logos.ts` checa os dois. **OIDC só funciona em deploys reais** (Production/Preview) — não funciona em `next dev` local nem em `npm run build` local. Testar upload/leitura de Blob sempre em produção.
-- **Gotcha crítico de cache**: um fetch com `cache: "no-store"` dentro de uma página estática quebra a regeneração em runtime ("Page changed from static to dynamic") e trava a página na versão antiga pra sempre, silenciosamente. Por isso `lib/sites.ts` tem duas variantes de leitura: `obterSitesPorCnpj8()` (usa `next: {revalidate: 86400}`, para as páginas públicas estáticas) e uma leitura interna com `no-store` usada só dentro das Server Actions do admin (fora de rota estática, seguro ali).
+Uma única rota `/admin` (não mais `/admin/logos`), com 7 abas (`AdminTabs.tsx`): **Instituições**, **Maquininhas**, **Antecipação FGTS**, **Hot Money**, **Carta Fiança**, **Menus**, **Senha**.
 
-## 6. Painel administrativo (`app/admin/`)
+- **Autenticação**: senha em `ADMIN_PASSWORD` (env var) ou hash salvo no R2 (`admin-senha.json`, PBKDF2-SHA256, 210k iterações) se o admin já trocou a senha pelo painel. Cookie de sessão assinado (`admin_session`, HMAC-SHA256) verificado em `lib/admin-auth.ts` e no `proxy.ts` (matcher cobre `/admin` + todas as rotas de exportação CSV/XLSX).
+- **Padrão de cada aba de dado curado** (Maquininhas/FGTS/Hot Money/Carta Fiança, todas seguem a mesma estrutura): `lib/taxas-*.ts` (CRUD no R2), `lib/planilha-*.ts` (template CSV/XLSX + validação de import, delimitador `;` porque a taxa usa vírgula decimal, BOM no início pro Excel abrir como UTF-8), `app/admin/actions-*.ts` (Server Actions), `FormAdicionarTaxa*.tsx`/`LinhaTaxa*.tsx`/`BotaoLimparTaxas*.tsx`/`Secao*.tsx` (UI), rota de exportação CSV/XLSX protegida no `proxy.ts`.
+- **Feedback de sucesso/erro**: todos os formulários de "salvar" usam `useActionState` + componente compartilhado `MensagemAcao` (`app/admin/MensagemAcao.tsx`, tipo `EstadoAcao`) - mostram mensagem de sucesso/erro em vez de nada, e capturam exceptions das Server Actions em vez de derrubar a página na tela de erro genérica do Next quando a validação falha.
+- **Aba Menus** (`lib/visibilidade-operacoes.ts`): checkbox marcado = visível (semântica corrigida depois de feedback do usuário - inicialmente estava invertida). Desmarcar oculta a operação do NavBar/rodapé/home simultaneamente, sem precisar de deploy. Página continua acessível por link direto.
+- **Cursor**: regra global em `app/globals.css` (`button:not(:disabled), [role="button"] { cursor: pointer }`) - o Preflight do Tailwind não define isso desde a v3.3, então botões mostravam cursor de seta padrão.
 
-- Rotas: `/admin/login` (form de senha) e `/admin/logos` (upload/gestão de logo + site por instituição, via Server Actions em `app/admin/logos/actions.ts`).
-- Autenticação: senha em `ADMIN_PASSWORD` (env var), cookie de sessão assinado (`admin_session`) verificado em `lib/admin-auth.ts` e no `proxy.ts` (matcher só cobre `/admin/logos/:path*` — `/admin/login` fica sempre acessível para permitir o login).
-- Uso: correção manual de logos/sites por CNPJ8 quando o fallback automático não é suficiente.
+## 7. Modelo de curadoria manual (operações sem dado oficial do BCB)
 
-## 7. PDF e compartilhamento (`lib/pdf.ts`)
+Usado por Maquininha, Antecipação FGTS, Hot Money e Carta Fiança - todas confirmadas via `ParametrosConsulta` como **não reportadas ao BCB**. Padrão comum:
 
-- Geração de PDF **client-side** via `jsPDF` (import dinâmico, só roda no browser) com a simulação + tabela comparativa de instituições.
-- Botão "Compartilhar" usa `navigator.share`/`canShare`, com fallback (download direto) em navegadores sem suporte.
-- Título/subtítulo do PDF derivados automaticamente do `titulo` da página, dividindo no primeiro `" - "`.
+1. Admin cadastra manualmente (form individual) ou em lote (CSV/Excel) as taxas por instituição/adquirente.
+2. Reimportar um arquivo **substitui só as linhas da(s) instituição(ões) presentes nele** - instituições ausentes do arquivo não são afetadas (evita perder cadastro ao reimportar uma planilha parcial).
+3. Página pública compara as opções cadastradas, ordenadas pelo melhor resultado pro usuário (menor custo ou maior valor recebido, dependendo do produto).
+4. Disclaimer específico em cada página: taxas anunciadas publicamente pelas instituições, cadastradas manualmente, **não são uma média oficial de mercado** (diferente das simulações com dado do BCB).
 
-## 8. Conteúdo e estrutura de páginas (SEO / AdSense)
+Diferenças de cálculo entre elas (não são todas Tabela Price):
+- **Maquininha**: desconto direto sobre o valor da venda (MDR), sem juros nem prazo.
+- **Antecipação FGTS**: valor presente com juros compostos mensais (mesma lógica de desconto de um financiamento, "ao contrário").
+- **Hot Money**: juros simples pro-rata por dias, pago de uma vez no vencimento (não parcelado).
+- **Carta Fiança**: taxa de serviço anual proporcional ao prazo, sem juros - não é empréstimo.
 
-Cada tipo de operação tem sua própria página com:
-1. Calculadora (o "utility hook" que traz tráfego de busca transacional).
-2. Explicação conceitual do produto (o que é, como funciona, quem pode contratar).
-3. Dicas práticas (o que olhar antes de contratar, erros comuns, como comparar propostas).
-4. Explicação de CET, IOF e como interpretar a taxa mostrada.
-5. Fonte dos dados citada e link para o BCB (reforça autoridade/confiança — importante porque conteúdo financeiro é categoria YMYL no Google).
+## 8. PDF e compartilhamento (`lib/pdf.ts`)
 
-**Disclaimer obrigatório em todas as páginas**: o site não é uma instituição financeira, não oferece crédito, não coleta dados pessoais, e os valores simulados são estimativas baseadas em médias de mercado publicadas pelo BCB — não são uma oferta nem substituem consulta a uma instituição financeira real.
+Geração client-side via `jsPDF` (import dinâmico) com a simulação + tabela comparativa + IOF quando aplicável. Botão "Compartilhar" via `navigator.share`/`canShare` com fallback. Título/subtítulo derivados automaticamente do `titulo` da página no primeiro `" - "`.
 
-Isso importa por dois motivos:
-- **Legal**: evita qualquer leitura de que o site está "ofertando crédito" (o que traria obrigações regulatórias que não fazem sentido para um simulador).
-- **Google AdSense**: o risco principal não é a política de "personal loans advertisers" do Google Ads (o site não anuncia) — é a qualidade do conteúdo em categoria YMYL para indexação orgânica. Texto genérico repetido só trocando o nome da modalidade tende a ser lido como conteúdo raso; cada página precisa ter conteúdo realmente diferente e substancial.
+## 9. SEO
 
-**Estilo de texto do site**: sem travessão (—), só hífen (-) — pedido explícito do usuário, aplicado em todo o conteúdo.
+- **`app/sitemap.ts`**: gera `/sitemap.xml` com as 25 URLs públicas (19 estáticas + 6 combinações de financiamento imobiliário). `/admin` fica de fora de propósito.
+- **`app/robots.ts`**: gera `/robots.txt`, libera tudo exceto `/admin`, aponta pro sitemap.
+- **Google Search Console**: verificação via meta tag (`verification.google` no `layout.tsx`). Submissão do sitemap deu erro "não foi possível buscar" na primeira tentativa (provavelmente janela de propagação do deploy) - funcionou na segunda tentativa, sem mudança de código.
+- **AdSense** (`ca-pub-9190691299034575`): script carrega corretamente via `next/script strategy="beforeInteractive"` (única estratégia que garante o script no HTML já renderizado no servidor - `afterInteractive` não aparece no SSR, e uma tag `<script>` pura quebra a hidratação porque o próprio AdSense reescreve o nó em runtime). Auto Ads ativo, cria o slot automaticamente, mas retorna `data-ad-status="unfilled"` - implementação correta, resultado normal pra site novo/em revisão ou tráfego de teste automatizado. Não é um bug de código.
 
-## 9. Estado atual (2026-07-16)
+**Disclaimer obrigatório em todas as páginas de simulação**: o site não é uma instituição financeira, não oferece crédito, não coleta dados pessoais, valores são estimativas - importa tanto por motivo legal (evitar leitura de "oferta de crédito") quanto de qualidade de conteúdo pro AdSense (categoria YMYL, texto raso/repetido é penalizado).
 
-Escopo completo (PF + PJ) implementado e em produção: **https://calculacredito.vercel.app**. `npm run lint` e `tsc --noEmit` passando limpos. Todas as páginas de modalidade funcionando ponta a ponta com dado real do BCB, verificadas no browser.
+**Estilo de texto do site**: sem travessão (—), só hífen (-) - pedido explícito do usuário, aplicado em todo o conteúdo, incluindo este documento.
+
+## 10. Estado atual (2026-07-17)
+
+Escopo completo (PF + PJ, 13 modalidades + painel admin com 7 abas) implementado e em produção: **https://calculacredito.com.br**. `npm run lint` e `tsc --noEmit` passando limpos em todas as mudanças do dia. Storage migrado de Vercel Blob (pausado por estouro de cota) para Cloudflare R2, testado ponta a ponta em produção. Sitemap e robots.txt no ar e submetidos ao Search Console.
 
 ### Pendências
-- **Deploy**: auto-deploy via GitHub webhook funciona na maioria das vezes, mas já falhou silenciosamente pelo menos duas vezes (uma por timeout real da API do BCB durante o build, outra sem causa aparente). Sempre confirmar com `npx vercel ls calculacredito` e usar `npx vercel --prod` manualmente como fallback se o deploy esperado não aparecer.
-- **AdSense**: aprovação pendente (`ca-pub-9190691299034575`, `ads.txt` já configurado).
-- **Logos/sites reais**: usuário ainda não subiu logos/sites reais das instituições financeiras (só testou com placeholder no painel admin, já removido).
-- Revisão jurídica formal do disclaimer, se o usuário quiser ir além da versão atual (redigida mas não validada por advogado).
+- **Dados de maquininha**: usuário reimportando via CSV de backup depois da migração pro R2 (bucket novo começou vazio).
+- **AdSense**: aguardando aprovação/revisão do site e tráfego real crescer - implementação técnica confirmada correta (script carrega, Auto Ads cria slot, retorna "unfilled").
+- **Logos/sites reais das instituições**: segue pendente desde o início do projeto - usuário ainda não subiu logos/sites reais (só testou com placeholder, já removido).
+- Revisão jurídica formal do disclaimer, se o usuário quiser ir além da versão atual.
+- **Cadência de deploy**: agrupar mudanças em lotes maiores antes de publicar (lição do incidente de cota) - vale mesmo com a folga maior do R2, boa prática geral.
 
-## 10. Riscos / decisões em aberto
+## 11. Riscos / decisões em aberto
 
-- Formato de exibição de taxa por banco (tabela comparativa completa vs. só a média) já resolvido a favor da tabela comparativa completa, com fallback de avatar quando não há logo.
-- Cobertura de instituições no imobiliário: "regulada + TR" foi escolhido como default por ter a maior cobertura observada nos testes; revisitar se o padrão de mercado mudar.
+- Formato de exibição de taxa por banco (tabela comparativa completa vs. só a média): resolvido a favor da tabela comparativa completa, com fallback de avatar quando não há logo.
+- Cobertura de instituições no imobiliário: "regulada + TR" como default por maior cobertura observada; revisitar se o padrão de mercado mudar.
+- Se o volume de dados crescer muito (ex.: centenas de instituições por produto), o padrão atual de "ler o JSON inteiro, modificar em memória, regravar o arquivo inteiro" pode precisar ser revisto - funciona bem pro volume atual (dezenas de linhas, edição sequencial por um único admin), mas não escala para escrita concorrente de múltiplos usuários nem para volumes muito grandes (ver conversa de 2026-07-17 sobre por que esse padrão não serve pra um CRM, por exemplo).

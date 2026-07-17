@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { LINKS_PF, LINKS_PJ } from "@/lib/navegacao";
 
-export function Footer() {
+export function Footer({ ocultas }: { ocultas: string[] }) {
   const ano = new Date().getFullYear();
+  const linksPF = LINKS_PF.filter((link) => !ocultas.includes(link.href));
+  const linksPJ = LINKS_PJ.filter((link) => !ocultas.includes(link.href));
 
   return (
     <footer className="mt-16 bg-black text-white">
@@ -11,7 +13,7 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-zinc-400">Simulações PF</h3>
             <ul className="mt-3 space-y-2">
-              {LINKS_PF.map((link) => (
+              {linksPF.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-zinc-200 hover:text-white hover:underline">
                     {link.label}
@@ -24,7 +26,7 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-zinc-400">Simulações PJ</h3>
             <ul className="mt-3 space-y-2">
-              {LINKS_PJ.map((link) => (
+              {linksPJ.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-zinc-200 hover:text-white hover:underline">
                     {link.label}

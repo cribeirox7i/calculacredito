@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { obterOperacoesOcultas } from "@/lib/visibilidade-operacoes";
 
 type Operacao = {
   titulo: string;
@@ -82,7 +83,11 @@ function GridOperacoes({ operacoes }: { operacoes: Operacao[] }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const ocultas = await obterOperacoesOcultas();
+  const operacoesPFVisiveis = operacoesPF.filter((op) => !ocultas.includes(op.href));
+  const operacoesPJVisiveis = operacoesPJ.filter((op) => !ocultas.includes(op.href));
+
   return (
     <main className="mx-auto w-full px-4 py-16 sm:px-6 lg:w-[70%]">
       <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -101,7 +106,7 @@ export default function Home() {
           Crédito para pessoa física.
         </p>
         <div className="mt-4">
-          <GridOperacoes operacoes={operacoesPF} />
+          <GridOperacoes operacoes={operacoesPFVisiveis} />
         </div>
       </section>
 
@@ -113,7 +118,7 @@ export default function Home() {
           Crédito para pessoa jurídica.
         </p>
         <div className="mt-4">
-          <GridOperacoes operacoes={operacoesPJ} />
+          <GridOperacoes operacoes={operacoesPJVisiveis} />
         </div>
       </section>
     </main>

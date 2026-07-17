@@ -35,10 +35,10 @@ function Logomarca() {
   );
 }
 
-export function NavBar() {
+export function NavBar({ ocultas }: { ocultas: string[] }) {
   const pathname = usePathname();
   const emPj = PREFIXOS_PJ.some((prefixo) => pathname.startsWith(prefixo));
-  const links = emPj ? LINKS_PJ : LINKS_PF;
+  const links = (emPj ? LINKS_PJ : LINKS_PF).filter((link) => !ocultas.includes(link.href));
 
   return (
     <nav className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-black/80">

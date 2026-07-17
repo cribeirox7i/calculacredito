@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Footer } from "@/components/Footer";
 import { NavBar } from "@/components/NavBar";
+import { obterOperacoesOcultas } from "@/lib/visibilidade-operacoes";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,11 +28,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const operacoesOcultas = await obterOperacoesOcultas();
+
   return (
     <html
       lang="pt-BR"
@@ -61,9 +64,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
-        <NavBar />
+        <NavBar ocultas={operacoesOcultas} />
         <div className="flex-1">{children}</div>
-        <Footer />
+        <Footer ocultas={operacoesOcultas} />
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ const ABAS = [
   { id: "instituicoes", label: "Instituições" },
   { id: "maquininhas", label: "Maquininhas" },
   { id: "fgts", label: "Antecipação FGTS" },
+  { id: "menus", label: "Menus" },
   { id: "senha", label: "Senha" },
 ] as const;
 
@@ -15,15 +16,17 @@ export function AdminTabs({
   instituicoes,
   maquininhas,
   fgts,
+  menus,
   senha,
 }: {
   instituicoes: ReactNode;
   maquininhas: ReactNode;
   fgts: ReactNode;
+  menus: ReactNode;
   senha: ReactNode;
 }) {
   const [aba, setAba] = useState<AbaId>("instituicoes");
-  const conteudoPorAba: Record<AbaId, ReactNode> = { instituicoes, maquininhas, fgts, senha };
+  const conteudoPorAba: Record<AbaId, ReactNode> = { instituicoes, maquininhas, fgts, menus, senha };
 
   return (
     <div>

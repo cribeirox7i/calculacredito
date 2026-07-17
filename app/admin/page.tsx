@@ -3,10 +3,12 @@ import { blobConfigurado, codigoDoCaminho } from "@/lib/logos";
 import { obterSitesPorCnpj8 } from "@/lib/sites";
 import { obterTaxasMaquininha } from "@/lib/taxas-maquininha";
 import { obterTaxasFgts } from "@/lib/taxas-fgts";
+import { obterOperacoesOcultasAtual } from "@/lib/visibilidade-operacoes";
 import { AdminTabs } from "./AdminTabs";
 import { SecaoInstituicoes } from "./SecaoInstituicoes";
 import { SecaoMaquininhas } from "./SecaoMaquininhas";
 import { SecaoFgts } from "./SecaoFgts";
+import { SecaoOperacoes } from "./SecaoOperacoes";
 import { SecaoSenha } from "./SecaoSenha";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +27,12 @@ export default async function AdminPage() {
     );
   }
 
-  const [{ blobs }, sites, taxas, taxasFgts] = await Promise.all([
+  const [{ blobs }, sites, taxas, taxasFgts, operacoesOcultas] = await Promise.all([
     list({ prefix: "logos/" }),
     obterSitesPorCnpj8(),
     obterTaxasMaquininha(),
     obterTaxasFgts(),
+    obterOperacoesOcultasAtual(),
   ]);
 
   const logosPorCnpj8 = new Map(blobs.map((b) => [codigoDoCaminho(b.pathname), b.url]));
@@ -42,6 +45,7 @@ export default async function AdminPage() {
         instituicoes={<SecaoInstituicoes logosPorCnpj8={logosPorCnpj8} sites={sites} />}
         maquininhas={<SecaoMaquininhas taxas={taxas} />}
         fgts={<SecaoFgts taxas={taxasFgts} />}
+        menus={<SecaoOperacoes ocultas={operacoesOcultas} />}
         senha={<SecaoSenha />}
       />
     </main>

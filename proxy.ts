@@ -26,5 +26,7 @@ export const config = {
     "/admin/exportar-hotmoney-xlsx",
     "/admin/exportar-carta-fianca",
     "/admin/exportar-carta-fianca-xlsx",
+    "/admin/exportar-cartao-anuidade",
+    "/admin/exportar-cartao-anuidade-xlsx",
   ],
 };

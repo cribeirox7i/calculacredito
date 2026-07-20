@@ -5,6 +5,7 @@ import { obterTaxasMaquininha } from "@/lib/taxas-maquininha";
 import { obterTaxasFgts } from "@/lib/taxas-fgts";
 import { obterTaxasHotMoney } from "@/lib/taxas-hotmoney";
 import { obterTaxasCartaFianca } from "@/lib/taxas-carta-fianca";
+import { obterTaxasCartaoAnuidade } from "@/lib/taxas-cartao-anuidade";
 import { obterOperacoesOcultasAtual } from "@/lib/visibilidade-operacoes";
 import { AdminTabs } from "./AdminTabs";
 import { SecaoInstituicoes } from "./SecaoInstituicoes";
@@ -12,6 +13,7 @@ import { SecaoMaquininhas } from "./SecaoMaquininhas";
 import { SecaoFgts } from "./SecaoFgts";
 import { SecaoHotMoney } from "./SecaoHotMoney";
 import { SecaoCartaFianca } from "./SecaoCartaFianca";
+import { SecaoCartaoAnuidade } from "./SecaoCartaoAnuidade";
 import { SecaoOperacoes } from "./SecaoOperacoes";
 import { SecaoSenha } from "./SecaoSenha";
 
@@ -31,16 +33,25 @@ export default async function AdminPage() {
     );
   }
 
-  const [logosPorCnpj8Obj, sites, taxas, taxasFgts, taxasHotMoney, taxasCartaFianca, operacoesOcultas] =
-    await Promise.all([
-      obterLogosPorCnpj8(),
-      obterSitesPorCnpj8(),
-      obterTaxasMaquininha(),
-      obterTaxasFgts(),
-      obterTaxasHotMoney(),
-      obterTaxasCartaFianca(),
-      obterOperacoesOcultasAtual(),
-    ]);
+  const [
+    logosPorCnpj8Obj,
+    sites,
+    taxas,
+    taxasFgts,
+    taxasHotMoney,
+    taxasCartaFianca,
+    taxasCartaoAnuidade,
+    operacoesOcultas,
+  ] = await Promise.all([
+    obterLogosPorCnpj8(),
+    obterSitesPorCnpj8(),
+    obterTaxasMaquininha(),
+    obterTaxasFgts(),
+    obterTaxasHotMoney(),
+    obterTaxasCartaFianca(),
+    obterTaxasCartaoAnuidade(),
+    obterOperacoesOcultasAtual(),
+  ]);
 
   const logosPorCnpj8 = new Map(Object.entries(logosPorCnpj8Obj));
 
@@ -54,6 +65,7 @@ export default async function AdminPage() {
         fgts={<SecaoFgts taxas={taxasFgts} />}
         hotmoney={<SecaoHotMoney taxas={taxasHotMoney} />}
         cartaFianca={<SecaoCartaFianca taxas={taxasCartaFianca} />}
+        cartaoAnuidade={<SecaoCartaoAnuidade taxas={taxasCartaoAnuidade} />}
         menus={<SecaoOperacoes ocultas={operacoesOcultas} />}
         senha={<SecaoSenha />}
       />

@@ -8,10 +8,12 @@ Site leve, sem banco de dados tradicional e sem login, que simula operações de
 
 **Escopo atual — Pessoa Física e Pessoa Jurídica:**
 
-- **Pessoa Física**: crédito pessoal, crédito consignado (INSS/privado/público), financiamento de veículo, financiamento imobiliário (SFH "reguladas" / SFI "mercado" × prefixado/TR/IPCA), **saque-aniversário FGTS**, **antecipação do saque-aniversário FGTS**.
+- **Pessoa Física**: crédito pessoal, crédito consignado (INSS/privado/público), financiamento de veículo, financiamento imobiliário (SFH "reguladas" / SFI "mercado" × prefixado/TR/IPCA), **saque-aniversário FGTS**, **antecipação do saque-aniversário FGTS**, **juros de cartão de crédito** (rotativo/parcelado, dado do BCB), **anuidade e benefícios de cartão de crédito** (curado no admin).
 - **Pessoa Jurídica**: capital de giro (troca automática entre prazo até/acima de 365 dias conforme o valor digitado no campo "prazo" da calculadora — não é seletor de rota separado), conta garantida, cheque especial PJ, desconto de duplicatas, **maquininha de cartão**, **hot money**, **carta fiança**.
 
 A home (`app/page.tsx`) é dividida em 2 seções — "Para mim" (PF) e "Para minha empresa" (PJ) — e a navbar (`components/NavBar.tsx`) tem um alternador "Pessoas"/"Empresas" que troca os atalhos exibidos conforme o prefixo da rota atual (`lib/navegacao.ts` centraliza `LINKS_PF`/`LINKS_PJ`/`PREFIXOS_PJ`, compartilhado entre NavBar e Footer). Qualquer operação pode ser ocultada desses menus (NavBar/rodapé/home) sem deploy, pelo admin — ver seção 7.
+
+**Menu mobile (2026-07-19)**: abaixo do breakpoint `md`, a barra de links inline (que quebrava em várias linhas e consumia espaço vertical excessivo no celular) some e vira um botão hambúrguer que abre um painel lateral (`fixed inset-y-0 right-0`, `translate-x` + `transition-transform`) com o alternador Pessoas/Empresas, o `ThemeToggle` e os links em coluna. Scroll do fundo travado via `document.documentElement.style.overflow` enquanto o painel está aberto (mesmo padrão de manipulação direta do DOM do `ThemeToggle.tsx`). Desktop (`md:` e acima) não mudou.
 
 ## 2. Arquitetura
 
@@ -33,6 +35,8 @@ A home (`app/page.tsx`) é dividida em 2 seções — "Para mim" (PF) e "Para mi
 | `/desconto-duplicatas` | Desconto de duplicatas PJ | BCB |
 | `/saque-aniversario` | Saque-aniversário FGTS | Tabela oficial fixa (`lib/saque-aniversario.json`) |
 | `/antecipacao-fgts` | Antecipação do saque-aniversário | Curado no admin (sem fonte oficial) |
+| `/cartao-credito/[tipo]` | Juros de cartão de crédito (`rotativo`/`parcelado`) | BCB |
+| `/anuidade-cartao` | Anuidade e benefícios de cartão de crédito | Curado no admin (sem fonte oficial) |
 | `/maquininha-de-cartao` | Taxas de maquininha (MDR) | Curado no admin |
 | `/hot-money` | Empréstimo de curtíssimo prazo PJ | Curado no admin |
 | `/carta-fianca` | Garantia bancária PJ | Curado no admin |
@@ -49,7 +53,8 @@ Dataset: **"Taxas de Juros de Operações de Crédito por Instituição Financei
 - **Query OData precisa de `encodeURIComponent` manual**, não `URLSearchParams` (o `+` vs `%20` quebra o `$filter` com erro 400).
 - Todos os códigos/nomes exatos de modalidade (PF e PJ) ficam centralizados em `lib/modalidades.ts`, validados via `ParametrosConsulta`.
 - **CDI**: buscado à parte via SGS (série 4389, `fetchTaxaCDI` em `lib/bcb.ts`), usado nas simulações pós-fixadas (capital de giro e conta garantida) para converter "CDI × %" em taxa mensal efetiva (`taxaAnualParaMensal` em `lib/amortizacao.ts`).
-- **Confirmado que NÃO existem no BCB** (verificado via `ParametrosConsulta`, todos os 29 registros de PF+PJ): saque-aniversário FGTS, antecipação FGTS, hot money, carta fiança, maquininha de cartão. Por isso essas 5 operações usam o modelo de curadoria manual (seção 7) em vez de dado oficial.
+- **Confirmado que NÃO existem no BCB** (verificado via `ParametrosConsulta`, todos os 29 registros de PF+PJ): saque-aniversário FGTS, antecipação FGTS, hot money, carta fiança, maquininha de cartão, anuidade/benefícios de cartão de crédito. Por isso essas 6 operações usam o modelo de curadoria manual (seção 7) em vez de dado oficial.
+- **Cartão de crédito - juros** (`204101` rotativo total, `215101` parcelado, ambos `segmento: Pessoa Física`) **existe sim** no BCB, confirmado em 2026-07-19 via `ParametrosConsulta` e testado com dado real no recurso diário - por isso usa dado oficial (`lib/modalidades.ts` → `MODALIDADES_CARTAO`), diferente da anuidade do mesmo cartão, que não é reportada ao BC.
 
 ### Recurso `TaxasJurosDiariaPorInicioPeriodo` (atualiza a cada 5 dias úteis)
 Usado por todas as modalidades PF exceto imobiliário, e por todas as modalidades PJ com dado oficial (capital de giro, conta garantida, cheque especial, desconto de duplicatas).
@@ -84,10 +89,10 @@ Usado por todas as modalidades PF exceto imobiliário, e por todas as modalidade
 
 ## 6. Painel administrativo unificado (`app/admin/`)
 
-Uma única rota `/admin` (não mais `/admin/logos`), com 7 abas (`AdminTabs.tsx`): **Instituições**, **Maquininhas**, **Antecipação FGTS**, **Hot Money**, **Carta Fiança**, **Menus**, **Senha**.
+Uma única rota `/admin` (não mais `/admin/logos`), com 8 abas (`AdminTabs.tsx`): **Instituições**, **Maquininhas**, **Antecipação FGTS**, **Hot Money**, **Carta Fiança**, **Anuidade de Cartão**, **Menus**, **Senha**.
 
 - **Autenticação**: senha em `ADMIN_PASSWORD` (env var) ou hash salvo no R2 (`admin-senha.json`, PBKDF2-SHA256, 210k iterações) se o admin já trocou a senha pelo painel. Cookie de sessão assinado (`admin_session`, HMAC-SHA256) verificado em `lib/admin-auth.ts` e no `proxy.ts` (matcher cobre `/admin` + todas as rotas de exportação CSV/XLSX).
-- **Padrão de cada aba de dado curado** (Maquininhas/FGTS/Hot Money/Carta Fiança, todas seguem a mesma estrutura): `lib/taxas-*.ts` (CRUD no R2), `lib/planilha-*.ts` (template CSV/XLSX + validação de import, delimitador `;` porque a taxa usa vírgula decimal, BOM no início pro Excel abrir como UTF-8), `app/admin/actions-*.ts` (Server Actions), `FormAdicionarTaxa*.tsx`/`LinhaTaxa*.tsx`/`BotaoLimparTaxas*.tsx`/`Secao*.tsx` (UI), rota de exportação CSV/XLSX protegida no `proxy.ts`.
+- **Padrão de cada aba de dado curado** (Maquininhas/FGTS/Hot Money/Carta Fiança/Anuidade de Cartão, todas seguem a mesma estrutura): `lib/taxas-*.ts` (CRUD no R2), `lib/planilha-*.ts` (template CSV/XLSX + validação de import, delimitador `;` porque a taxa usa vírgula decimal, BOM no início pro Excel abrir como UTF-8), `app/admin/actions-*.ts` (Server Actions), `FormAdicionarTaxa*.tsx`/`LinhaTaxa*.tsx`/`BotaoLimparTaxas*.tsx`/`Secao*.tsx` (UI), rota de exportação CSV/XLSX protegida no `proxy.ts`.
 - **Feedback de sucesso/erro**: todos os formulários de "salvar" usam `useActionState` + componente compartilhado `MensagemAcao` (`app/admin/MensagemAcao.tsx`, tipo `EstadoAcao`) - mostram mensagem de sucesso/erro em vez de nada, e capturam exceptions das Server Actions em vez de derrubar a página na tela de erro genérica do Next quando a validação falha.
 - **Aba Menus** (`lib/visibilidade-operacoes.ts`): checkbox marcado = visível (semântica corrigida depois de feedback do usuário - inicialmente estava invertida). Desmarcar oculta a operação do NavBar/rodapé/home simultaneamente, sem precisar de deploy. Página continua acessível por link direto.
 - **Cursor**: regra global em `app/globals.css` (`button:not(:disabled), [role="button"] { cursor: pointer }`) - o Preflight do Tailwind não define isso desde a v3.3, então botões mostravam cursor de seta padrão.
@@ -122,12 +127,15 @@ Geração client-side via `jsPDF` (import dinâmico) com a simulação + tabela 
 
 **Estilo de texto do site**: sem travessão (—), só hífen (-) - pedido explícito do usuário, aplicado em todo o conteúdo, incluindo este documento.
 
-## 10. Estado atual (2026-07-17)
+## 10. Estado atual (2026-07-19)
 
-Escopo completo (PF + PJ, 13 modalidades + painel admin com 7 abas) implementado e em produção: **https://calculacredito.com.br**. `npm run lint` e `tsc --noEmit` passando limpos em todas as mudanças do dia. Storage migrado de Vercel Blob (pausado por estouro de cota) para Cloudflare R2, testado ponta a ponta em produção. Sitemap e robots.txt no ar e submetidos ao Search Console.
+Escopo (PF + PJ, 15 modalidades + painel admin com 8 abas) implementado e em produção: **https://calculacredito.com.br**. Storage migrado de Vercel Blob (pausado por estouro de cota) para Cloudflare R2, testado ponta a ponta em produção. Sitemap e robots.txt no ar e submetidos ao Search Console.
+
+**Adicionado em 2026-07-19**: menu mobile compacto (hambúrguer + painel lateral, ver seção 1) e comparador de cartão de crédito em duas partes - juros do rotativo/parcelado com dado oficial do BCB (`/cartao-credito/[tipo]`) e anuidade/benefícios curados no admin (`/anuidade-cartao`, 8ª aba do painel).
 
 ### Pendências
-- **Dados de maquininha**: usuário reimportando via CSV de backup depois da migração pro R2 (bucket novo começou vazio).
+- **Dados de maquininha**: já recadastrados via CSV de backup depois da migração pro R2 (bucket novo tinha começado vazio) - resolvido.
+- **Dados de anuidade de cartão**: aba nova no admin, ainda sem nenhum cartão cadastrado - usuário precisa popular manualmente ou via CSV/Excel.
 - **AdSense**: aguardando aprovação/revisão do site e tráfego real crescer - implementação técnica confirmada correta (script carrega, Auto Ads cria slot, retorna "unfilled").
 - **Logos/sites reais das instituições**: segue pendente desde o início do projeto - usuário ainda não subiu logos/sites reais (só testou com placeholder, já removido).
 - Revisão jurídica formal do disclaimer, se o usuário quiser ir além da versão atual.

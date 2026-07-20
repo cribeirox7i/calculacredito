@@ -38,6 +38,16 @@ const operacoesPF: Operacao[] = [
     descricao: "Compare quanto cada instituição paga hoje pelas parcelas futuras do saque-aniversário.",
     href: "/antecipacao-fgts",
   },
+  {
+    titulo: "Cartão de crédito",
+    descricao: "Veja os juros do rotativo e do parcelamento de fatura reportados ao Banco Central.",
+    href: "/cartao-credito/rotativo",
+  },
+  {
+    titulo: "Anuidade de cartão",
+    descricao: "Compare a anuidade e os benefícios dos principais cartões de crédito.",
+    href: "/anuidade-cartao",
+  },
 ];
 
 const operacoesPJ: Operacao[] = [

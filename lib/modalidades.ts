@@ -24,6 +24,21 @@ export const MODALIDADES = {
   },
 } as const;
 
+// Cartão de crédito - só existem essas duas modalidades no BCB (validado via
+// ParametrosConsulta em 2026-07-19); anuidade/benefícios não são reportados
+// ao Banco Central e por isso usam o modelo de curadoria manual (ver
+// lib/taxas-cartao-anuidade.ts).
+export const MODALIDADES_CARTAO = {
+  rotativo: {
+    codigo: "204101",
+    nome: "Cartão de crédito - rotativo total - Prefixado",
+  },
+  parcelado: {
+    codigo: "215101",
+    nome: "Cartão de crédito - parcelado - Prefixado",
+  },
+} as const;
+
 // Financiamento imobiliário só existe no recurso mensal da API, dividido em
 // "taxas de mercado" (SFI, sem teto de valor/uso de FGTS) vs. "taxas
 // reguladas" (SFH, dentro do teto e regras de FGTS) × 3 indexadores.

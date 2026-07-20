@@ -8,6 +8,7 @@ const ABAS = [
   { id: "fgts", label: "Antecipação FGTS" },
   { id: "hotmoney", label: "Hot Money" },
   { id: "cartaFianca", label: "Carta Fiança" },
+  { id: "cartaoAnuidade", label: "Anuidade de Cartão" },
   { id: "menus", label: "Menus" },
   { id: "senha", label: "Senha" },
 ] as const;
@@ -20,6 +21,7 @@ export function AdminTabs({
   fgts,
   hotmoney,
   cartaFianca,
+  cartaoAnuidade,
   menus,
   senha,
 }: {
@@ -28,6 +30,7 @@ export function AdminTabs({
   fgts: ReactNode;
   hotmoney: ReactNode;
   cartaFianca: ReactNode;
+  cartaoAnuidade: ReactNode;
   menus: ReactNode;
   senha: ReactNode;
 }) {
@@ -38,6 +41,7 @@ export function AdminTabs({
     fgts,
     hotmoney,
     cartaFianca,
+    cartaoAnuidade,
     menus,
     senha,
   };

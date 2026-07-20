@@ -13,6 +13,12 @@ export const LINKS_PF: LinkNav[] = [
   },
   { href: "/saque-aniversario", label: "Saque-aniversário FGTS" },
   { href: "/antecipacao-fgts", label: "Antecipação FGTS" },
+  {
+    href: "/cartao-credito/rotativo",
+    label: "Cartão de crédito",
+    prefixoAtivo: "/cartao-credito",
+  },
+  { href: "/anuidade-cartao", label: "Anuidade de cartão" },
 ];
 
 export const LINKS_PJ: LinkNav[] = [
